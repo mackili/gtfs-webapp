@@ -158,17 +158,17 @@ CREATE TABLE "stop_time_updates" (
   "departure_delay" int,
   "departure_time" int,
   "departure_uncertainty" int,
-  "schedule_relationship" varchar(9),
+  "schedule_relationship" varchar(255),
   "trip_update_id" varchar(255)
 );
 
 CREATE TABLE "trip_updates" (
   "oid" varchar(255) PRIMARY KEY,
   "trip_id" varchar(64),
-  "route_id" smallint,
+  "route_id" varchar(255),
   "trip_start_time" varchar(8),
   "trip_start_date" varchar(10),
-  "schedule_relationship" varchar(9),
+  "schedule_relationship" varchar(255),
   "vehicle_id" varchar(64),
   "vehicle_label" varchar(255),
   "vehicle_license_plate" varchar(10),

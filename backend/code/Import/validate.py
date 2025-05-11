@@ -1,16 +1,26 @@
 import pandas as pd
-import datetime
+from tqdm import tqdm
 from dateutil.parser import parse
 from utils import makePoint, parse_extended_time
 
 
-def validate(dataframes: list[pd.DataFrame]) -> list[pd.DataFrame]:
+def validate(
+    dataframes: list[pd.DataFrame], include_shapes: bool
+) -> list[pd.DataFrame]:
+    pbar = tqdm(total=6)
     dataframes = validate_agency(dataframes)
+    pbar.update(1)
     dataframes = validate_stops(dataframes)
+    pbar.update(1)
     dataframes = validate_calendar(dataframes)
+    pbar.update(1)
     dataframes = validate_calendar_dates(dataframes)
-    dataframes = validate_shapes(dataframes)
-    dataframes = validate_stop_times(dataframes)
+    pbar.update(1)
+    if include_shapes:
+        dataframes = validate_shapes(dataframes)
+    pbar.update(1)
+    # dataframes = validate_stop_times(dataframes)
+    pbar.update(1)
     return dataframes
 
 
@@ -77,11 +87,24 @@ def validate_frequencies(dataframes: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
 def validate_stop_times(dataframes: list[pd.DataFrame]) -> list[pd.DataFrame]:
     stop_times = dataframes["stop_times.txt"]
-    stop_times[["arrival_time_add_days", "arrival_time"]] = stop_times[
-        "arrival_time"
-    ].apply(parse_extended_time)
-    stop_times[["departure_time_add_days", "departure_time"]] = stop_times[
-        "departure_time"
-    ].apply(parse_extended_time)
+    # stop_times[["arrival_time_add_days", "arrival_time"]] = stop_times[
+    #     "arrival_time"
+    # ].apply(parse_extended_time)
+    # stop_times[["departure_time_add_days", "departure_time"]] = stop_times[
+    #     "departure_time"
+    # ].apply(parse_extended_time)
+
+    # Vectorized parsing of arrival_time and departure_time
+    arrival_times = stop_times["arrival_time"].map(parse_extended_time)
+    departure_times = stop_times["departure_time"].map(parse_extended_time)
+
+    # Assign the parsed values back to the DataFrame
+    stop_times["arrival_time_add_days"], stop_times["arrival_time"] = zip(
+        *arrival_times
+    )
+    stop_times["departure_time_add_days"], stop_times["departure_time"] = zip(
+        *departure_times
+    )
+
     dataframes["stop_times.txt"] = stop_times
     return dataframes

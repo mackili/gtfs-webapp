@@ -4,34 +4,32 @@ from insert import insert
 import pandas as pd
 from tqdm import tqdm
 
-
-def getJsonValue(table_name, data) -> str | None:
-    data_subset = data.get(table_name)
-    if type(data_subset) == pd.DataFrame:
-        return data_subset.to_json(orient="records")
-
+INCLUDE_SHAPES = True
+BATCH_SIZE = 1000
 
 with tqdm(total=11) as pbar:
-    data = unzip("gtfs-webapp/backend/GTFS_KŚ.zip")
+    data = unzip("gtfs-webapp/backend/SEQ_GTFS.zip")
     pbar.update(1)
-    data = validate(data)
+    data = validate(data, INCLUDE_SHAPES)
     pbar.update(1)
 
-    insert("calendar", getJsonValue("calendar.txt", data))
+    insert("calendar", data.get("calendar.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("calendar_dates", getJsonValue("calendar_dates.txt", data))
+    insert("calendar_dates", data.get("calendar_dates.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("agency", getJsonValue("agency.txt", data))
+    insert("agency", data.get("agency.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("stops", getJsonValue("stops.txt", data))
+    insert("stops", data.get("stops.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("routes", getJsonValue("routes.txt", data))
+    insert("routes", data.get("routes.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("shapes", getJsonValue("shapes.txt", data))
+    if INCLUDE_SHAPES:
+        insert("shapes", data.get("shapes.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("trips", getJsonValue("trips.txt", data))
+    insert("trips", data.get("trips.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("frequencies", getJsonValue("frequencies.txt", data))
+    insert("frequencies", data.get("frequencies.txt"), BATCH_SIZE)
     pbar.update(1)
-    insert("stop_times", getJsonValue("stop_times.txt", data))
+    # insert("stop_times", data.get("stop_times.txt"), BATCH_SIZE)
     pbar.update(1)
+    pbar.close()

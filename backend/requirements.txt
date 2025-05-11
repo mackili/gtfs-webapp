@@ -9,3 +9,4 @@ requests
 gtfsdb
 "fastapi[standard]"
 typing
+gtfs-realtime-bindings
