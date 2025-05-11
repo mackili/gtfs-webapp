@@ -1,0 +1,11 @@
+pandas
+fastapi
+shutil
+os
+zipfile
+tempfile
+pydantic
+requests
+gtfsdb
+"fastapi[standard]"
+typing

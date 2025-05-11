@@ -1,0 +1,359 @@
+-- ===================
+-- CREATE TABLES
+-- ===================
+
+-- GTFS-style Tables
+CREATE TABLE "vehicle_positions" (
+  "oid" varchar(255) PRIMARY KEY,
+  "trip_id" varchar(64),
+  "route_id" varchar(64),
+  "trip_start_time" varchar(8),
+  "trip_start_date" varchar(10),
+  "vehicle_id" varchar(64),
+  "vehicle_label" varchar(255),
+  "position_latitude" float,
+  "position_longitude" float,
+  "position_earing" float,
+  "position_speed" float,
+  "occupancy_status" varchar(27)
+);
+
+CREATE TABLE "entity_selectors" (
+  "oid" varchar(255) PRIMARY KEY,
+  "agency_id" varchar(15),
+  "route_id" varchar(64),
+  "stop_id" varchar(10),
+  "route_type" smallint,
+  "trip_id" varchar(64),
+  "trip_route_id" varchar(64),
+  "trip_start_time" varchar(8),
+  "trip_start_date" varchar(10),
+  "alert_id" varchar(255)
+);
+
+CREATE TABLE "shapes" (
+  "shape_id" varchar(255),
+  "shape_pt_lat_lon" point,
+  "shape_pt_sequence" int,
+  "shape_dist_traveled" decimal(3,1),
+  PRIMARY KEY ("shape_id", "shape_pt_sequence")
+);
+
+CREATE TABLE "routes" (
+  "route_id" varchar(255) PRIMARY KEY,
+  "agency_id" varchar(255),
+  "route_short_name" varchar(255),
+  "route_long_name" text,
+  "route_desc" text,
+  "route_type" smallint,
+  "route_url" text,
+  "route_color" text,
+  "route_text_color" text,
+  "route_sort_order" integer,
+  "continous_pickup" smallint,
+  "continous_drop_off" smallint,
+  "network_id" varchar(255)
+);
+
+CREATE TABLE "agency" (
+  "agency_id" varchar(255) PRIMARY KEY,
+  "agency_name" varchar(255),
+  "agency_url" text,
+  "agency_timezone" text,
+  "agency_lang" char(2),
+  "agency_phone" text,
+  "agency_fare_url" text,
+  "agency_email" text
+);
+
+CREATE TABLE "trips" (
+  "trip_id" varchar(255) PRIMARY KEY,
+  "route_id" varchar(255),
+  "service_id" varchar(255),
+  "trip_headsign" text,
+  "trip_short_name" text,
+  "direction_id" smallint,
+  "block_id" text,
+  "shape_id" varchar(255),
+  "wheelchair_accessible" smallint,
+  "bikes_allowed" smallint
+);
+
+CREATE TABLE "calendar" (
+  "service_id" varchar(255) PRIMARY KEY,
+  "monday" boolean,
+  "tuesday" boolean,
+  "wednesday" boolean,
+  "thursday" boolean,
+  "friday" boolean,
+  "saturday" boolean,
+  "sunday" boolean,
+  "start_date" date,
+  "end_date" date
+);
+
+CREATE TABLE "calendar_dates" (
+  "service_id" varchar(255),
+  "date" date,
+  "exception_type" smallint,
+  PRIMARY KEY ("service_id", "date")
+);
+
+CREATE TABLE "frequencies" (
+  "trip_id" varchar(255) PRIMARY KEY,
+  "start_time" time,
+  "end_time" time,
+  "headway_secs" int,
+  "exact_times" int
+);
+
+CREATE TABLE "stops" (
+  "stop_id" varchar(255) PRIMARY KEY,
+  "stop_code" varchar(255),
+  "stop_name" text,
+  "tts_stop_name" text,
+  "stop_desc" text,
+  "stop_lat_lon" point,
+  "zone_id" varchar(255),
+  "stop_url" text,
+  "location_type" smallint,
+  "parent_station" varchar(255),
+  "stop_timezone" text,
+  "wheelchair_boarding" smallint,
+  "level_id" varchar(255),
+  "platform_code" text
+);
+
+CREATE TABLE "stop_times" (
+  "trip_id" varchar(255),
+  "stop_sequence" int,
+  "arrival_time" time,
+  "departure_time" time,
+  "arrival_time_add_days" smallint DEFAULT 0,
+  "departure_time_add_days" smallint DEFAULT 0,
+  "stop_id" varchar(255),
+  "location_group_id" varchar(255),
+  "location_id" varchar(255),
+  "stop_headsign" text,
+  "start_pickup_drop_off_window" time,
+  "end_pickup_drop_off_window" time,
+  "pickup_type" smallint,
+  "drop_off_type" smallint,
+  "continous_pickup" smallint,
+  "continous_drop_off" smallint,
+  "shape_dist_traveled" decimal(3,1),
+  "timepoint" smallint,
+  "pickup_booking_rule_id" smallint,
+  "drop_off_booking_rule_id" smallint,
+  PRIMARY KEY ("trip_id", "stop_sequence")
+);
+
+CREATE TABLE "stop_time_updates" (
+  "oid" varchar(255) PRIMARY KEY,
+  "stop_sequence" int,
+  "stop_id" varchar(10),
+  "arrival_delay" int,
+  "arrival_time" int,
+  "arrival_uncertainty" int,
+  "departure_delay" int,
+  "departure_time" int,
+  "departure_uncertainty" int,
+  "schedule_relationship" varchar(9),
+  "trip_update_id" varchar(255)
+);
+
+CREATE TABLE "trip_updates" (
+  "oid" varchar(255) PRIMARY KEY,
+  "trip_id" varchar(64),
+  "route_id" smallint,
+  "trip_start_time" varchar(8),
+  "trip_start_date" varchar(10),
+  "schedule_relationship" varchar(9),
+  "vehicle_id" varchar(64),
+  "vehicle_label" varchar(255),
+  "vehicle_license_plate" varchar(10),
+  "timestamp" timestamp
+);
+
+CREATE TABLE "alerts" (
+  "oid" varchar(255) PRIMARY KEY,
+  "start" int,
+  "end" int,
+  "cause" varchar(20),
+  "effect" varchar(20),
+  "url" varchar(300),
+  "header_text" varchar(80),
+  "description_text" text
+);
+
+-- Survey Tables
+CREATE TABLE "survey_template" (
+  "id" serial PRIMARY KEY,
+  "title" varchar(80),
+  "description" text,
+  "type" varchar(80)
+);
+
+CREATE TABLE "author" (
+  "id" serial PRIMARY KEY,
+  "first_name" varchar(255),
+  "last_name" varchar(255),
+  "institution_name" text
+);
+
+CREATE TABLE "survey_template_author" (
+  "author_id" int,
+  "survey_template_id" int,
+  "display_order" int,
+  PRIMARY KEY ("author_id", "survey_template_id")
+);
+
+CREATE TABLE "template_section" (
+  "id" serial PRIMARY KEY,
+  "survey_template_id" int,
+  "display_order" int,
+  "title" text,
+  "description" text,
+  "display_next_page" boolean
+);
+
+CREATE TABLE "template_question" (
+  "id" serial PRIMARY KEY,
+  "survey_template_id" int,
+  "text" text,
+  "description" text,
+  "display_order" int,
+  "template_section_id" int,
+  "answer_format" varchar(80)
+);
+
+CREATE TABLE "service_aspect" (
+  "id" serial PRIMARY KEY UNIQUE,
+  "title" varchar(80),
+  "weight" real,
+  "formula" text
+);
+
+CREATE TABLE "measures_aspect" (
+  "template_question_id" int,
+  "aspect_id" int,
+  PRIMARY KEY ("template_question_id", "aspect_id")
+);
+
+CREATE TABLE "survey" (
+  "id" serial PRIMARY KEY,
+  "survey_template_id" int
+);
+
+CREATE TABLE "survey_submission" (
+  "id" serial PRIMARY KEY,
+  "survey_id" int,
+  "trip_id" text,
+  "ticket_hash" text,
+  "timestamp" timestamp
+);
+
+CREATE TABLE "submitted_answer" (
+  "id" serial PRIMARY KEY,
+  "submission_id" int,
+  "template_question_id" int,
+  "value" text
+);
+
+-- ===================
+-- ALTER TABLES: ADD FOREIGN KEYS AND CONSTRAINTS
+-- ===================
+
+-- GTFS Alterations
+
+ALTER TABLE "shapes"
+  ADD CONSTRAINT "UQ_shapes_shape_id" UNIQUE ("shape_id","shape_pt_sequence");
+
+ALTER TABLE "trips"
+  ADD FOREIGN KEY ("route_id") REFERENCES "routes"("route_id"),
+  ADD FOREIGN KEY ("service_id") REFERENCES "calendar"("service_id");
+
+ALTER TABLE "vehicle_positions"
+  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id"),
+  ADD FOREIGN KEY ("route_id") REFERENCES "routes"("route_id");
+
+ALTER TABLE "stop_times"
+  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id"),
+  ADD FOREIGN KEY ("stop_id") REFERENCES "stops"("stop_id");
+
+ALTER TABLE "routes"
+  ADD FOREIGN KEY ("agency_id") REFERENCES "agency"("agency_id");
+
+ALTER TABLE "stops"
+  ADD FOREIGN KEY ("parent_station") REFERENCES "stops"("stop_id");
+
+ALTER TABLE "stop_time_updates"
+  ADD FOREIGN KEY ("stop_id") REFERENCES "stops"("stop_id"),
+  ADD FOREIGN KEY ("trip_update_id") REFERENCES "trip_updates"("oid");
+
+ALTER TABLE "trip_updates"
+  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id");
+
+ALTER TABLE "calendar_dates"
+  ADD FOREIGN KEY ("service_id") REFERENCES "calendar"("service_id");
+
+ALTER TABLE "frequencies"
+  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id");
+
+ALTER TABLE "entity_selectors"
+  ADD CONSTRAINT "UQ_entity_selectors_alert_id" UNIQUE ("alert_id"),
+  ADD FOREIGN KEY ("agency_id") REFERENCES "agency"("agency_id"),
+  ADD FOREIGN KEY ("route_id") REFERENCES "routes"("route_id"),
+  ADD FOREIGN KEY ("stop_id") REFERENCES "stops"("stop_id"),
+  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id");
+
+ALTER TABLE "alerts"
+  ADD FOREIGN KEY ("oid") REFERENCES "entity_selectors"("alert_id");
+
+-- Survey Alterations
+ALTER TABLE "survey_template_author"
+  ADD FOREIGN KEY ("author_id") REFERENCES "author"("id"),
+  ADD FOREIGN KEY ("survey_template_id") REFERENCES "survey_template"("id");
+
+ALTER TABLE "template_section"
+  ADD FOREIGN KEY ("survey_template_id") REFERENCES "survey_template"("id");
+
+ALTER TABLE "template_question"
+  ADD FOREIGN KEY ("survey_template_id") REFERENCES "survey_template"("id"),
+  ADD FOREIGN KEY ("template_section_id") REFERENCES "template_section"("id");
+
+ALTER TABLE "measures_aspect"
+  ADD FOREIGN KEY ("template_question_id") REFERENCES "template_question"("id"),
+  ADD FOREIGN KEY ("aspect_id") REFERENCES "service_aspect"("id");
+
+ALTER TABLE "survey"
+  ADD FOREIGN KEY ("survey_template_id") REFERENCES "survey_template"("id");
+
+ALTER TABLE "survey_submission"
+  ADD FOREIGN KEY ("survey_id") REFERENCES "survey"("id"),
+  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id");
+
+ALTER TABLE "submitted_answer"
+  ADD FOREIGN KEY ("template_question_id") REFERENCES "template_question"("id"),
+  ADD FOREIGN KEY ("submission_id") REFERENCES "survey_submission"("id");
+
+
+-- ===================
+-- POSTGREST SETUP
+-- ===================
+
+CREATE ROLE authenticator LOGIN NOINHERIT NOCREATEDB NOCREATEROLE NOSUPERUSER;
+CREATE ROLE anonymous NOLOGIN;
+CREATE ROLE webuser NOLOGIN;
+
+-- ===================
+-- CREATE ROLES
+-- ===================
+
+GRANT USAGE ON SCHEMA public TO anonymous;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anonymous;
+GRANT INSERT ON ALL TABLES IN SCHEMA public TO anonymous;
+GRANT UPDATE ON ALL TABLES IN SCHEMA public TO anonymous;
+GRANT DELETE ON ALL TABLES IN SCHEMA public TO anonymous;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO anonymous;
+GRANT anonymous TO authenticator;

@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:latest
+    container_name: servqual_db
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - path: "database.env"
+        required: true
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+      - servqual_db:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: servqual_pgadmin4
+    restart: always
+    ports:
+      - "5050:80"
+    env_file:
+      - path: "pgadmin.env"
+        required: true
+    volumes:
+      - servqual_pgadmin4:/var/lib/pgadmin
+    depends_on:
+      - db
+  postgrest:
+    image: postgrest/postgrest
+    container_name: servqual_db_api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    env_file:
+      - path: "postgrest.env"
+        required: true
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      API_URL: http://localhost:3000/
+volumes:
+  servqual_db:
+  servqual_pgadmin4:
