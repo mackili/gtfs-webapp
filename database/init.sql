@@ -190,6 +190,7 @@ CREATE TABLE "alerts" (
 CREATE TABLE "survey_template" (
   "id" serial PRIMARY KEY,
   "title" varchar(80),
+  "display_title" varchar(80),
   "description" text,
   "type" varchar(80)
 );
