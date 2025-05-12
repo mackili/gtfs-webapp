@@ -11,8 +11,8 @@ def getJsonValue(data) -> str | None:
         return data.to_json(orient="records")
 
 
-def insert(file_name: str, data: str, batch_size: int) -> int:
-    if type(data) != str:
+def insert(file_name: str, data: list, batch_size: int) -> int:
+    if type(data) != None:
         return 422
     do_upsert = os.getenv("DO_UPSERT", "false").lower() == "true"
     if do_upsert or True:

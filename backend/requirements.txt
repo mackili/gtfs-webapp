@@ -10,3 +10,5 @@ gtfsdb
 "fastapi[standard]"
 typing
 gtfs-realtime-bindings
+optparse
+logging

@@ -14,7 +14,7 @@ def getJsonValue(data: list | None) -> str | None:
 
 
 def insert(table: str, data: list) -> int:
-    if type(data) != list:
+    if type(data) != list or len(data) <= 0:
         return 422
     do_upsert = os.getenv("DO_UPSERT", "false").lower() == "true"
     if do_upsert or True:

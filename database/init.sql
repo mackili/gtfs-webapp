@@ -15,7 +15,9 @@ CREATE TABLE "vehicle_positions" (
   "position_longitude" float,
   "position_earing" float,
   "position_speed" float,
-  "occupancy_status" varchar(27)
+  "occupancy_status" varchar(27),
+  "current_stop_sequence" int,
+  "timestamp" timestamp
 );
 
 CREATE TABLE "entity_selectors" (
@@ -172,6 +174,7 @@ CREATE TABLE "trip_updates" (
   "vehicle_id" varchar(64),
   "vehicle_label" varchar(255),
   "vehicle_license_plate" varchar(10),
+  "delay" int,
   "timestamp" timestamp
 );
 
@@ -183,7 +186,8 @@ CREATE TABLE "alerts" (
   "effect" varchar(20),
   "url" varchar(300),
   "header_text" varchar(80),
-  "description_text" text
+  "description_text" text,
+  "severity_level" varchar(80)
 );
 
 -- Survey Tables
@@ -302,14 +306,14 @@ ALTER TABLE "frequencies"
   ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id");
 
 ALTER TABLE "entity_selectors"
-  ADD CONSTRAINT "UQ_entity_selectors_alert_id" UNIQUE ("alert_id"),
   ADD FOREIGN KEY ("agency_id") REFERENCES "agency"("agency_id"),
+  ADD FOREIGN KEY ("alert_id") REFERENCES "alerts"("oid"),
   ADD FOREIGN KEY ("route_id") REFERENCES "routes"("route_id"),
   ADD FOREIGN KEY ("stop_id") REFERENCES "stops"("stop_id"),
   ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id");
 
 ALTER TABLE "alerts"
-  ADD FOREIGN KEY ("oid") REFERENCES "entity_selectors"("alert_id");
+  ADD CONSTRAINT "UQ_alerts_oid" UNIQUE ("oid");
 
 -- Survey Alterations
 ALTER TABLE "survey_template_author"
