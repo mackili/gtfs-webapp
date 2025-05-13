@@ -173,6 +173,7 @@ def main():
             json.dumps(
                 {
                     "alerts": alerts_dict,
+                    "tripUpdates": trip_updates_dict,
                     "stopTimeUpdates": stop_time_updates_dict,
                     "vehiclePositions": vehicle_positions_dict,
                     "entitySelectors": entity_selectors_dict,
