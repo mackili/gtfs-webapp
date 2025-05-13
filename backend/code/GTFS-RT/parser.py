@@ -1,6 +1,10 @@
 from google.transit import gtfs_realtime_pb2
 from dateutil.parser import parse
 from datetime import datetime
+from google.protobuf.json_format import MessageToDict
+import humps
+import pandas as pd
+import math
 
 PREFFERRED_LANGUAGE = "en"
 
@@ -25,115 +29,78 @@ def getTrans(string):
 def parse_trip(data) -> tuple[dict, list]:
     timestamp = datetime.fromtimestamp(data.timestamp).isoformat()
     oid = data.trip.trip_id + timestamp
-    parsed_trip = {
-        "oid": oid,
-        "trip_id": data.trip.trip_id,
-        "route_id": data.trip.route_id,
-        "trip_start_time": data.trip.start_time,
-        "trip_start_date": parse(data.trip.start_date).date().isoformat(),
-        "schedule_relationship": data.trip.DESCRIPTOR.enum_types_by_name[
-            "ScheduleRelationship"
-        ]
-        .values_by_number[data.trip.schedule_relationship]
-        .name,
-        "vehicle_id": data.vehicle.id,
-        "vehicle_label": data.vehicle.label,
-        "vehicle_license_plate": data.vehicle.license_plate,
-        "timestamp": timestamp,
-        "delay": data.delay,
-    }
-    return (parsed_trip, parse_stop_time_updates(data.stop_time_update, oid))
+    parsed_trip = humps.decamelize(MessageToDict(data.trip))
+    parsed_trip["oid"] = oid
+    return (
+        parsed_trip,
+        parse_stop_time_updates(MessageToDict(data)["stopTimeUpdate"], oid),
+    )
 
 
 def parse_stop_time_updates(data, parent_oid) -> list:
-    result = []
-    for update in data:
-        result.append(
-            {
-                "oid": parent_oid + update.stop_id,
-                "stop_sequence": update.stop_sequence,
-                "stop_id": update.stop_id,
-                "arrival_time": update.arrival.time,
-                "arrival_delay": update.arrival.delay,
-                "arrival_uncertainty": update.arrival.uncertainty,
-                "departure_time": update.departure.time,
-                "departure_delay": update.departure.delay,
-                "departure_uncertainty": update.departure.uncertainty,
-                "schedule_relationship": update.DESCRIPTOR.enum_types_by_name[
-                    "ScheduleRelationship"
-                ]
-                .values_by_number[update.schedule_relationship]
-                .name,
-                "trip_update_id": parent_oid,
-            }
-        )
-    return result
+    result = humps.decamelize(data)
+    for item in result:
+        item["oid"] = parent_oid + item["stop_id"]
+    result_df = pd.json_normalize(result, sep="_")
+    result_df["arrival_time"] = pd.to_datetime(
+        result_df["arrival_time"], unit="s", errors="coerce"
+    )
+    result_df["departure_time"] = pd.to_datetime(
+        result_df["departure_time"], unit="s", errors="coerce"
+    )
+    return result_df.to_dict(orient="records")
 
 
 def parse_vehicle_position(data) -> dict:
-    timestamp = datetime.fromtimestamp(data.timestamp).isoformat()
-    oid = data.vehicle.id + data.trip.trip_id + timestamp
-    parsed_vehicle_position = {
-        "oid": oid,
-        "trip_id": data.trip.trip_id,
-        "route_id": data.trip.route_id,
-        "trip_start_time": data.trip.start_time,
-        "trip_start_date": data.trip.start_date,
-        "vehicle_id": data.vehicle.id,
-        "vehicle_label": data.vehicle.label,
-        "position_latitude": data.position.latitude,
-        "position_longitude": data.position.longitude,
-        "position_speed": data.position.speed,
-        "occupancy_status": data.DESCRIPTOR.enum_types_by_name["OccupancyStatus"]
-        .values_by_number[data.occupancy_status]
-        .name,
-        "current_stop_sequence": data.current_stop_sequence,
-        "timestamp": timestamp,
-    }
-    return parsed_vehicle_position
+    parsed_vehicle_position = humps.decamelize(MessageToDict(data))
+    oid = (
+        parsed_vehicle_position["vehicle"]["id"]
+        + parsed_vehicle_position["trip"]["trip_id"]
+        + parsed_vehicle_position["timestamp"]
+    )
+    parsed_vehicle_position["oid"] = oid
+    parsed_vehicle_position["timestamp"] = datetime.isoformat(
+        datetime.fromtimestamp(data.timestamp), sep="T"
+    )
+    return pd.json_normalize(parsed_vehicle_position, sep="_").to_dict(
+        orient="records"
+    )[0]
 
 
 def parse_alert(data, entity_id) -> tuple[dict, list]:
     oid = entity_id
-    parsed_alert = {
-        "oid": oid,
-        "start": data.active_period[0].start,
-        "end": data.active_period[0].end,
-        "cause": data.DESCRIPTOR.enum_types_by_name["Cause"]
-        .values_by_number[data.cause]
-        .name,
-        "effect": data.DESCRIPTOR.enum_types_by_name["Effect"]
-        .values_by_number[data.effect]
-        .name,
-        "url": getTrans(data.url),
-        "header_text": getTrans(data.header_text),
-        "description_text": getTrans(data.description_text),
-        "severity_level": data.DESCRIPTOR.enum_types_by_name["SeverityLevel"]
-        .values_by_number[data.severity_level]
-        .name,
-    }
-    return parsed_alert, parse_entity_selectors(data.informed_entity, oid)
+    # parsed_alert = {
+    #     "oid": oid,
+    #     "start": data.active_period[0].start,
+    #     "end": data.active_period[0].end,
+    #     "cause": data.DESCRIPTOR.enum_types_by_name["Cause"]
+    #     .values_by_number[data.cause]
+    #     .name,
+    #     "effect": data.DESCRIPTOR.enum_types_by_name["Effect"]
+    #     .values_by_number[data.effect]
+    #     .name,
+    #     "url": getTrans(data.url),
+    #     "header_text": getTrans(data.header_text),
+    #     "description_text": getTrans(data.description_text),
+    #     "severity_level": data.DESCRIPTOR.enum_types_by_name["SeverityLevel"]
+    #     .values_by_number[data.severity_level]
+    #     .name,
+    # }
+    parsed_alert = humps.decamelize(MessageToDict(data))
+    parsed_alert["oid"] = oid
+    if "informed_entity" in parsed_alert.keys():
+        parsed_inform = parse_entity_selectors(parsed_alert.pop("informed_entity"), oid)
+    else:
+        parsed_inform = []
+    return (
+        pd.json_normalize(parsed_alert, sep="_").to_dict(orient="records")[0],
+        parsed_inform,
+    )
 
 
 def parse_entity_selectors(data, parent_oid) -> list:
-    parsed_entities = []
     i: int = 0
     for entity in data:
-        parsed_entities.append(
-            {
-                "oid": parent_oid + str(i),
-                "alert_id": parent_oid,
-                "agency_id": entity.agency_id if entity.agency_id != "" else None,
-                "stop_id": entity.stop_id if entity.stop_id != "" else None,
-                "route_id": entity.route_id if entity.route_id != "" else None,
-                "route_type": entity.route_type,
-                "trip_id": entity.trip.trip_id if entity.trip.trip_id != "" else None,
-                "trip_route_id": (
-                    entity.trip.route_id if entity.trip.route_id != "" else None
-                ),
-                "trip_start_time": entity.trip.start_time,
-                "trip_start_date": entity.trip.start_date,
-            }
-        )
+        entity["oid"] = parent_oid + str(i)
         i = i + 1
-    return parsed_entities
+    return data

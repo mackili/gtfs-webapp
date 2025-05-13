@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 INCLUDE_SHAPES = True
-BATCH_SIZE = 1000
+BATCH_SIZE = 5000
 
 with tqdm(total=11) as pbar:
     data = unzip("gtfs-webapp/backend/SEQ_GTFS.zip")
@@ -30,6 +30,6 @@ with tqdm(total=11) as pbar:
     pbar.update(1)
     insert("frequencies", data.get("frequencies.txt"), BATCH_SIZE)
     pbar.update(1)
-    # insert("stop_times", data.get("stop_times.txt"), BATCH_SIZE)
+    insert("stop_times", data.get("stop_times.txt"), BATCH_SIZE)
     pbar.update(1)
     pbar.close()

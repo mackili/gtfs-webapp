@@ -10,4 +10,4 @@ def parse_extended_time(time_str):
     days_added = hours // 24
     normalized_hour = hours - days_added * 24
     normalized_time_str = f"{normalized_hour:02}:{minutes:02}:{seconds:02}"
-    return pd.Series([days_added, normalized_time_str])
+    return days_added, normalized_time_str

@@ -5,10 +5,11 @@
 -- GTFS-style Tables
 CREATE TABLE "vehicle_positions" (
   "oid" varchar(255) PRIMARY KEY,
-  "trip_id" varchar(64),
-  "route_id" varchar(64),
+  "trip_trip_id" varchar(64),
+  "trip_route_id" varchar(64),
   "trip_start_time" varchar(8),
   "trip_start_date" varchar(10),
+  "stop_id" varchar(255),
   "vehicle_id" varchar(64),
   "vehicle_label" varchar(255),
   "position_latitude" float,
@@ -17,6 +18,7 @@ CREATE TABLE "vehicle_positions" (
   "position_speed" float,
   "occupancy_status" varchar(27),
   "current_stop_sequence" int,
+  "current_status" varchar(80),
   "timestamp" timestamp
 );
 
@@ -24,7 +26,7 @@ CREATE TABLE "entity_selectors" (
   "oid" varchar(255) PRIMARY KEY,
   "agency_id" varchar(15),
   "route_id" varchar(64),
-  "stop_id" varchar(10),
+  "stop_id" varchar(255),
   "route_type" smallint,
   "trip_id" varchar(64),
   "trip_route_id" varchar(64),
@@ -153,13 +155,13 @@ CREATE TABLE "stop_times" (
 CREATE TABLE "stop_time_updates" (
   "oid" varchar(255) PRIMARY KEY,
   "stop_sequence" int,
-  "stop_id" varchar(10),
-  "arrival_delay" int,
-  "arrival_time" int,
-  "arrival_uncertainty" int,
-  "departure_delay" int,
-  "departure_time" int,
-  "departure_uncertainty" int,
+  "stop_id" varchar(255),
+  "arrival_delay" real,
+  "arrival_time" real,
+  "arrival_uncertainty" real,
+  "departure_delay" real,
+  "departure_time" real,
+  "departure_uncertainty" real,
   "schedule_relationship" varchar(255),
   "trip_update_id" varchar(255)
 );
@@ -168,8 +170,8 @@ CREATE TABLE "trip_updates" (
   "oid" varchar(255) PRIMARY KEY,
   "trip_id" varchar(64),
   "route_id" varchar(255),
-  "trip_start_time" varchar(8),
-  "trip_start_date" varchar(10),
+  "start_time" varchar(8),
+  "start_date" varchar(10),
   "schedule_relationship" varchar(255),
   "vehicle_id" varchar(64),
   "vehicle_label" varchar(255),
@@ -187,7 +189,10 @@ CREATE TABLE "alerts" (
   "url" varchar(300),
   "header_text" varchar(80),
   "description_text" text,
-  "severity_level" varchar(80)
+  "severity_level" varchar(80),
+  "url_translation" json,
+  "header_text_translation" json,
+  "description_text_translation" json
 );
 
 -- Survey Tables

@@ -19,7 +19,7 @@ def validate(
     if include_shapes:
         dataframes = validate_shapes(dataframes)
     pbar.update(1)
-    # dataframes = validate_stop_times(dataframes)
+    dataframes = validate_stop_times(dataframes)
     pbar.update(1)
     return dataframes
 
@@ -41,7 +41,7 @@ def validate_stops(dataframes: list[pd.DataFrame]) -> list[pd.DataFrame]:
     stops.drop(["stop_lat", "stop_lon"], axis=1, inplace=True)
 
     stops.stop_id = stops.stop_id.astype(str)
-    dataframes["stops.txt"] = stops
+    dataframes["stops.txt"] = stops.sort_values("parent_station", na_position="first")
     return dataframes
 
 
@@ -87,13 +87,6 @@ def validate_frequencies(dataframes: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
 def validate_stop_times(dataframes: list[pd.DataFrame]) -> list[pd.DataFrame]:
     stop_times = dataframes["stop_times.txt"]
-    # stop_times[["arrival_time_add_days", "arrival_time"]] = stop_times[
-    #     "arrival_time"
-    # ].apply(parse_extended_time)
-    # stop_times[["departure_time_add_days", "departure_time"]] = stop_times[
-    #     "departure_time"
-    # ].apply(parse_extended_time)
-
     # Vectorized parsing of arrival_time and departure_time
     arrival_times = stop_times["arrival_time"].map(parse_extended_time)
     departure_times = stop_times["departure_time"].map(parse_extended_time)

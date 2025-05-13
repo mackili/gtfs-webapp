@@ -12,3 +12,6 @@ typing
 gtfs-realtime-bindings
 optparse
 logging
+protobuf
+humps
+simplejson
