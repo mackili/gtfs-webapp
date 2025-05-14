@@ -4,7 +4,6 @@ from datetime import datetime
 from google.protobuf.json_format import MessageToDict
 import humps
 import pandas as pd
-import math
 
 PREFFERRED_LANGUAGE = "en"
 

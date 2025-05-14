@@ -157,10 +157,10 @@ CREATE TABLE "stop_time_updates" (
   "stop_sequence" int,
   "stop_id" varchar(255),
   "arrival_delay" real,
-  "arrival_time" real,
+  "arrival_time" varchar(26),
   "arrival_uncertainty" real,
   "departure_delay" real,
-  "departure_time" real,
+  "departure_time" varchar(26),
   "departure_uncertainty" real,
   "schedule_relationship" varchar(255),
   "trip_update_id" varchar(255)
@@ -182,8 +182,7 @@ CREATE TABLE "trip_updates" (
 
 CREATE TABLE "alerts" (
   "oid" varchar(255) PRIMARY KEY,
-  "start" int,
-  "end" int,
+  "active_period" json,
   "cause" varchar(20),
   "effect" varchar(20),
   "url" varchar(300),

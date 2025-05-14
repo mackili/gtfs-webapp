@@ -1,22 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from typing import Union
-from pydantic import BaseModel
 import requests
 import subprocess
 import simplejson as json
+from classes import *
 
 app = FastAPI()
 
 BASE_URL = "http://localhost:3000"
-
-
-class GTFSRT_Options(BaseModel):
-    tripUpdates: str = None  # Optional
-    vehiclePositions: str = None  # Optional
-    alerts: str = None  # Optional
-    batchSize: int = None  # Optional
-    verbose: bool = False  # Optional
-    write: bool = False  # Optional
 
 
 @app.get("/query")
@@ -30,7 +21,7 @@ def read_query(table: str, fields=None):
 
 @app.post("/read-realtime-feed")
 def read_feed(options: GTFSRT_Options):
-    command = ["python3", "backend/code/GTFS-RT/main.py"]
+    command = ["python3", "backend/code/GTFS-RT/main_rt.py"]
     if options.tripUpdates:
         command.extend(["-t", options.tripUpdates])
     if options.vehiclePositions:

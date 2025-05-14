@@ -1,6 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, AnyUrl
+from pydantic_extra_types.language_code import LanguageAlpha2
+from pydantic_extra_types.timezone_name import TimeZoneName
+from pydantic_extra_types.phone_numbers import PhoneNumber
 from typing import Optional
 from datetime import datetime
+
+
+class Agency(BaseModel):
+    agency_id: str
+    agency_phone: PhoneNumber | None
+    agency_timezone: TimeZoneName
+    agency_fare_url: str | None
+    agency_lang: LanguageAlpha2 | None
+    agency_url: AnyUrl
+    agency_name: str
+    agency_email: EmailStr | None
 
 
 class VehiclePositions(BaseModel):
@@ -52,17 +66,6 @@ class Routes(BaseModel):
     route_url: Optional[str]
     route_desc: Optional[str]
     network_id: Optional[str]
-
-
-class Agency(BaseModel):
-    agency_id: Optional[str]
-    agency_phone: Optional[str]
-    agency_timezone: Optional[str]
-    agency_fare_url: Optional[str]
-    agency_lang: Optional[str]
-    agency_url: Optional[str]
-    agency_name: Optional[str]
-    agency_email: Optional[str]
 
 
 class Trips(BaseModel):
