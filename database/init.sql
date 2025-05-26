@@ -108,7 +108,7 @@ CREATE TABLE "frequencies" (
   "start_time" time,
   "end_time" time,
   "headway_secs" int,
-  "exact_times" int
+  "exact_times" smallint
 );
 
 CREATE TABLE "stops" (
