@@ -183,8 +183,8 @@ CREATE TABLE "trip_updates" (
 CREATE TABLE "alerts" (
   "oid" varchar(255) PRIMARY KEY,
   "active_period" json,
-  "cause" varchar(20),
-  "effect" varchar(20),
+  "cause" varchar(255),
+  "effect" varchar(255),
   "url" varchar(300),
   "header_text" varchar(80),
   "description_text" text,

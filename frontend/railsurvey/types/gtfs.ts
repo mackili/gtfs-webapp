@@ -1,27 +1,6 @@
 import { z } from "zod/v4";
 
-export const vehiclePositionsSchema = z.object({
-  oid: z.string(),
-  tripTripId: z.string().nullable(),
-  tripRouteId: z.string().nullable(),
-  tripStartTime: z.string().nullable(),
-  tripStartDate: z.string().nullable(),
-  stopId: z.string().nullable(),
-  vehicleId: z.string().nullable(),
-  vehicleLabel: z.string().nullable(),
-  positionLatitude: z.number().nullable(),
-  positionLongitude: z.number().nullable(),
-  positionEaring: z.number().nullable(),
-  positionSpeed: z.number().nullable(),
-  occupancyStatus: z.string().nullable(),
-  currentStopSequence: z.number().nullable(),
-  currentStatus: z.string().nullable(),
-  timestamp: z.date().nullable(),
-});
-
-export type VehiclePosition = z.infer<typeof vehiclePositionsSchema>;
-
-const routeTypeEnum = [
+export const routeTypeEnum = [
   "0",
   "1",
   "2",
@@ -33,21 +12,6 @@ const routeTypeEnum = [
   "11",
   "12",
 ] as const;
-
-export const entitySelectorsSchema = z.object({
-  oid: z.string().max(255),
-  agencyId: z.string().max(255).nullable(),
-  routeId: z.string().max(255).nullable(),
-  stopId: z.string().max(255).nullable(),
-  routeType: z.enum(routeTypeEnum).nullable(),
-  tripId: z.string().max(255).nullable(),
-  tripRouteId: z.string().max(255).nullable(),
-  tripStartTime: z.string().max(255).nullable(),
-  tripStartDate: z.string().max(255).nullable(),
-  alertId: z.string().max(255).nullable(),
-});
-
-export type EntitySelector = z.infer<typeof entitySelectorsSchema>;
 
 export const shapesSchema = z.object({
   shapeId: z.string().max(255),
