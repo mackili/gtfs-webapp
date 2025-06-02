@@ -346,6 +346,25 @@ ALTER TABLE "submitted_answer"
   ADD FOREIGN KEY ("template_question_id") REFERENCES "template_question"("id"),
   ADD FOREIGN KEY ("submission_id") REFERENCES "survey_submission"("id");
 
+-- ===================
+-- VIEWS SETUP
+-- ===================
+
+CREATE OR REPLACE VIEW agency_summary_view AS
+SELECT
+    a.agency_id,
+    a.agency_name,
+    a.agency_url,
+    a.agency_timezone,
+    COUNT(DISTINCT r.route_id) AS route_count,
+    COUNT(DISTINCT t.trip_id) AS trip_count
+FROM
+    agency a
+LEFT JOIN routes r ON r.agency_id = a.agency_id
+LEFT JOIN trips t ON t.route_id = r.route_id
+GROUP BY
+    a.agency_id, a.agency_name, a.agency_url, a.agency_timezone;
+
 
 -- ===================
 -- POSTGREST SETUP

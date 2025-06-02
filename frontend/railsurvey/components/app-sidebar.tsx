@@ -18,6 +18,7 @@ import {
   TrainTrack,
   Code,
   FileQuestion,
+  ListStart,
 } from "lucide-react";
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
@@ -41,18 +42,23 @@ const data = {
   },
   navMain: [
     {
+      title: "Home",
+      url: "/admin",
+      icon: ListStart,
+    },
+    {
       title: "Dashboard",
       url: "#",
       icon: CircleGauge,
     },
     {
       title: "Stations",
-      url: "#",
+      url: "/admin/stations?limit=9",
       icon: House,
     },
     {
       title: "Routes",
-      url: "#",
+      url: "/admin/routes?limit=9",
       icon: Workflow,
     },
     {
@@ -117,7 +123,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/admin/settings",
       icon: IconSettings,
     },
     {

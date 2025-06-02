@@ -95,11 +95,11 @@ def main(
     verbose: bool = opts.verbose,
 ) -> dict | None:
     if alerts is None and tripUpdates is None and vehiclePositions is None:
-        # alerts = SOURCES["alerts"]
+        alerts = SOURCES["alerts"]
         write = True
-        BATCH_SIZE = 1
+        BATCH_SIZE = 200
         tripUpdates = SOURCES["trip_updates"]
-        # vehiclePositions = SOURCES["vehicle_updates"]
+        vehiclePositions = SOURCES["vehicle_updates"]
         # logging.error(
         #     "No trip updates, alerts, or vehicle positions URLs were specified!"
         # )
@@ -206,4 +206,4 @@ def main(
     return None
 
 
-main()
+# main()

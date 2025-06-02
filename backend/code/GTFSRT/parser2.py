@@ -50,7 +50,7 @@ def parse_trip_update(data: list, entity_id: list):
         if updates:
             stop_time_updates = pd.json_normalize(updates, sep="_")
             stop_time_updates["oid"] = (
-                stop_time_updates["trip_id"]
+                stop_time_updates["trip_update_id"]
                 + stop_time_updates["stop_id"]
                 + stop_time_updates["arrival_time"]
                 + stop_time_updates["departure_time"]

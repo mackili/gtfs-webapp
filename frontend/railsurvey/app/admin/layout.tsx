@@ -1,6 +1,8 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Breadcrumb, BreadcrumbItem } from "@/components/ui/breadcrumb";
+import { Suspense } from "react";
+import Loading from "./loading";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -13,7 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <BreadcrumbItem>Admin</BreadcrumbItem>
           </Breadcrumb>
         </div>
-        {children}
+        <Suspense fallback={<Loading />}>{children}</Suspense>
       </main>
     </SidebarProvider>
   );
