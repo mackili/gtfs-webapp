@@ -2,181 +2,183 @@
 
 import * as React from "react";
 import {
-  IconCamera,
-  IconFileAi,
-  IconFileDescription,
-  IconHelp,
-  IconSearch,
-  IconSettings,
+    IconCamera,
+    IconFileAi,
+    IconFileDescription,
+    IconHelp,
+    IconSearch,
+    IconSettings,
 } from "@tabler/icons-react";
 import {
-  CircleGauge,
-  House,
-  Workflow,
-  TrainFront,
-  CalendarCheck,
-  TrainTrack,
-  Code,
-  FileQuestion,
-  ListStart,
+    CircleGauge,
+    House,
+    Workflow,
+    TrainFront,
+    CalendarCheck,
+    TrainTrack,
+    Code,
+    FileQuestion,
+    ListStart,
 } from "lucide-react";
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Home",
-      url: "/admin",
-      icon: ListStart,
+    user: {
+        name: "shadcn",
+        email: "m@example.com",
+        avatar: "/avatars/shadcn.jpg",
     },
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: CircleGauge,
-    },
-    {
-      title: "Stations",
-      url: "/admin/stations?limit=9",
-      icon: House,
-    },
-    {
-      title: "Routes",
-      url: "/admin/routes?limit=9",
-      icon: Workflow,
-    },
-    {
-      title: "Trips",
-      url: "#",
-      icon: CalendarCheck,
-    },
-    {
-      title: "Vehicles",
-      url: "#",
-      icon: TrainFront,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
+    navMain: [
         {
-          title: "Active Proposals",
-          url: "#",
+            title: "Home",
+            url: "/admin",
+            icon: ListStart,
         },
         {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
+            title: "Dashboard",
+            url: "#",
+            icon: CircleGauge,
         },
         {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
+            title: "Stations",
+            url: "/admin/stations?limit=9",
+            icon: House,
         },
         {
-          title: "Archived",
-          url: "#",
+            title: "Routes",
+            url: "/admin/routes?limit=9",
+            icon: Workflow,
         },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/admin/settings",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Surveys",
-      url: "#",
-      icon: FileQuestion,
-    },
-    {
-      name: "Calculations",
-      url: "#",
-      icon: Code,
-    },
-  ],
+        {
+            title: "Trips",
+            url: "#",
+            icon: CalendarCheck,
+        },
+        {
+            title: "Vehicles",
+            url: "#",
+            icon: TrainFront,
+        },
+    ],
+    navClouds: [
+        {
+            title: "Capture",
+            icon: IconCamera,
+            isActive: true,
+            url: "#",
+            items: [
+                {
+                    title: "Active Proposals",
+                    url: "#",
+                },
+                {
+                    title: "Archived",
+                    url: "#",
+                },
+            ],
+        },
+        {
+            title: "Proposal",
+            icon: IconFileDescription,
+            url: "#",
+            items: [
+                {
+                    title: "Active Proposals",
+                    url: "#",
+                },
+                {
+                    title: "Archived",
+                    url: "#",
+                },
+            ],
+        },
+        {
+            title: "Prompts",
+            icon: IconFileAi,
+            url: "#",
+            items: [
+                {
+                    title: "Active Proposals",
+                    url: "#",
+                },
+                {
+                    title: "Archived",
+                    url: "#",
+                },
+            ],
+        },
+    ],
+    navSecondary: [
+        {
+            title: "Settings",
+            url: "/admin/settings",
+            icon: IconSettings,
+        },
+        {
+            title: "Get Help",
+            url: "#",
+            icon: IconHelp,
+        },
+        {
+            title: "Search",
+            url: "#",
+            icon: IconSearch,
+        },
+    ],
+    documents: [
+        {
+            name: "Surveys",
+            url: "/admin/surveys",
+            icon: FileQuestion,
+        },
+        {
+            name: "Calculations",
+            url: "#",
+            icon: Code,
+        },
+    ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader className="py-8">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5 p-4"
-            >
-              <a href="#">
-                <TrainTrack className="!size-6" />
-                <span className="font-semibold text-xl">Railsurvey</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
-    </Sidebar>
-  );
+    return (
+        <Sidebar collapsible="icon" {...props}>
+            <SidebarHeader className="py-8">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            asChild
+                            className="data-[slot=sidebar-menu-button]:!p-1.5 p-4"
+                        >
+                            <a href="#">
+                                <TrainTrack className="!size-6" />
+                                <span className="font-semibold text-xl">
+                                    Railsurvey
+                                </span>
+                            </a>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <SidebarContent>
+                <NavMain items={data.navMain} />
+                <NavDocuments items={data.documents} />
+                <NavSecondary items={data.navSecondary} className="mt-auto" />
+            </SidebarContent>
+            <SidebarFooter>
+                <NavUser user={data.user} />
+            </SidebarFooter>
+        </Sidebar>
+    );
 }

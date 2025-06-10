@@ -13,6 +13,14 @@ import os
 sys.path.insert(1, "GTFSRT")
 from GTFSRT import main_rt as rt
 from Import.main import importGTFS
+from Surveys.upsert import (
+    UpsertSurveyTemplate,
+    UpsertAuthor,
+    AssignAuthors,
+    UpsertTemplateSection,
+    UpsertTemplateQuestions,
+    rollback,
+)
 
 app = FastAPI()
 
@@ -49,7 +57,7 @@ def read_query(
         headers["Range"] = range
 
     res = requests.get(endpoint, headers=headers)
-    print(headers)
+    print(endpoint)
     response = {}
     response_headers = res.headers
     if "Content-Range" in response_headers.keys():
@@ -99,3 +107,43 @@ async def post_gtfs(file: UploadFile):
     await importGTFS(file_content)
 
     return {"filename": file.filename}
+
+
+@app.post("/upsert/{table}")
+async def upsert_table(table: str, data):
+    endpoint = BASE_URL + "/" + humps.decamelize(table)
+    headers = {
+        "Prefer": "resolution=merge-duplicates",
+        "Prefer": "return=representation",
+    }
+    try:
+        res = requests.post(endpoint, headers=headers, data=data)
+        resJson = await res.json()
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    return resJson
+
+
+@app.post("/surveyTemplate")
+async def upsert_template(data: TemplateSummary):
+    try:
+        template: SurveyTemplate = await UpsertSurveyTemplate(data, BASE_URL)
+        result: TemplateSummary = TemplateSummary(
+            id=template.id,
+            title=template.title,
+            displayTitle=template.displayTitle,
+            description=template.description,
+            type=template.type,
+        )
+        result.surveyTemplateAuthors = await UpsertAuthor(data, BASE_URL)
+        await AssignAuthors(BASE_URL, result.surveyTemplateAuthors, template)
+        result.templateSections = await UpsertTemplateSection(
+            data, BASE_URL, template.id
+        )
+        result.templateQuestions = await UpsertTemplateQuestions(
+            data, BASE_URL, template.id
+        )
+        return result
+    except Exception as e:
+        await rollback(result, BASE_URL)
+        raise HTTPException(status_code=400, detail="Transaction rolled back")
