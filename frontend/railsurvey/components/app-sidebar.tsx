@@ -72,54 +72,6 @@ const data = {
             icon: TrainFront,
         },
     ],
-    navClouds: [
-        {
-            title: "Capture",
-            icon: IconCamera,
-            isActive: true,
-            url: "#",
-            items: [
-                {
-                    title: "Active Proposals",
-                    url: "#",
-                },
-                {
-                    title: "Archived",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Proposal",
-            icon: IconFileDescription,
-            url: "#",
-            items: [
-                {
-                    title: "Active Proposals",
-                    url: "#",
-                },
-                {
-                    title: "Archived",
-                    url: "#",
-                },
-            ],
-        },
-        {
-            title: "Prompts",
-            icon: IconFileAi,
-            url: "#",
-            items: [
-                {
-                    title: "Active Proposals",
-                    url: "#",
-                },
-                {
-                    title: "Archived",
-                    url: "#",
-                },
-            ],
-        },
-    ],
     navSecondary: [
         {
             title: "Settings",
@@ -140,7 +92,7 @@ const data = {
     documents: [
         {
             name: "Surveys",
-            url: "/admin/surveys",
+            url: "/admin/surveys?limit=9",
             icon: FileQuestion,
         },
         {

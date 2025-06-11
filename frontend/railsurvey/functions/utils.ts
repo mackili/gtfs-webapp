@@ -12,3 +12,13 @@ export function titleCase(str: string) {
             text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
     );
 }
+
+export const toNumber = (
+    value: string | string[] | undefined,
+    fallback: number = 0
+): number => {
+    if (Array.isArray(value)) {
+        return Number(value[0]) || fallback;
+    }
+    return value !== undefined ? Number(value) || fallback : fallback;
+};

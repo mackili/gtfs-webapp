@@ -15,11 +15,17 @@ type QueryInput = {
     select?: string;
 };
 
+type QueryResponseItemBase = Stops | Route | TemplateSummary;
+
+export type QueryResponseItem = QueryResponseItemBase & {
+    id: string | number;
+};
+
 export type QueryResponse = {
     totalSize: number | "*";
     itemsStart: number;
     itemsEnd: number;
-    items: [] | Stops[] | Route[] | TemplateSummary[];
+    items: [] | QueryResponseItem[];
 };
 
 export async function queryAgencyDetails(
@@ -150,12 +156,13 @@ export async function querySurveyTemplate(surveyTemplateId: number) {
 export async function queryRoutesTable(input: QueryTableInput) {
     const queryInput: QueryInput = {
         table: "routes",
-        fields: "id:routeId,routeId,routeType,agencyId,routeShortName,routeLongName",
+        fields: "id:routeId,routeId,routeId,routeType,agencyId,routeShortName,routeLongName",
         order: input.order,
         offset: input.offset,
         range: input.range?.toString().replace(",", "-"),
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    console.log(JSON.stringify(data));
     const itemsUpdated = (data.items as Route[]).map((item) => {
         item.routeShortName =
             item.routeShortName ||

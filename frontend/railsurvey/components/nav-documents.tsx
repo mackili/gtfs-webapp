@@ -17,6 +17,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function NavDocuments({
     items,
@@ -56,12 +57,12 @@ export function NavDocuments({
                                 side={isMobile ? "bottom" : "right"}
                                 align={isMobile ? "end" : "start"}
                             >
-                                <a href="/admin/surveys/new">
+                                <Link href="/admin/surveys/new">
                                     <DropdownMenuItem>
                                         <PlusCircle />
                                         <span>Create</span>
                                     </DropdownMenuItem>
-                                </a>
+                                </Link>
                                 <DropdownMenuItem>
                                     <Search />
                                     <span>Search</span>

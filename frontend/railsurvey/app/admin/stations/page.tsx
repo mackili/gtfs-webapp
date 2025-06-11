@@ -1,12 +1,43 @@
+"use server";
 import { H1 } from "@/components/ui/typography";
-import StationsTable from "./stations-table";
+import { headers } from "next/headers";
+import { toNumber } from "@/functions/utils";
+import { queryStationsTable } from "@/functions/dbQuery";
+import RecordTable from "@/components/records-table";
+import { columns } from "./columns";
 
-export default async function Home() {
+export default async function Home({
+    searchParams,
+}: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+    const {
+        rangeTo = undefined,
+        limit = undefined,
+        rangeFrom = undefined,
+    } = await searchParams;
+    const headerList = await headers();
+    const numLimit = toNumber(limit, 10);
+    const numRangeFrom = toNumber(rangeFrom, 0);
+    const numRangeTo = rangeTo ? toNumber(rangeTo, numRangeFrom) : numLimit;
+
+    const range: [number, number] = [numRangeFrom, numRangeTo];
+
+    const data = await queryStationsTable({
+        order: "stopId.asc",
+        limit: numLimit,
+        range: range,
+    });
     return (
         <div className="flex flex-col mx-10">
             <div className="grid w-full my-10">
                 <H1 text="Stations" />
-                <StationsTable />
+                <RecordTable
+                    data={data}
+                    url={headerList.get("x-current-path")}
+                    columns={columns}
+                    objectName="stations"
+                />
             </div>
         </div>
     );

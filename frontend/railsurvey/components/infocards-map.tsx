@@ -11,7 +11,7 @@ export function InfocardsMap({
 }: {
     title?: string;
     titleFormat?: "H1" | "H2" | "H3" | "H4" | "P";
-    data: Record<string, string | number | boolean | undefined | null>;
+    data: Record<string, string | number | boolean | undefined | null | []>;
     keysFilter?: string[];
     className?: string;
 }) {

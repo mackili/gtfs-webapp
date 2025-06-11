@@ -29,18 +29,18 @@ export default async function Home({
     const templateData: TemplateSummary = await querySurveyTemplate(
         surveyTemplateId
     );
-    console.log(templateData);
     return (
         <div className="flex flex-col mx-10">
             <div className="flex w-full items-end gap-8 my-10">
-                <H1 text={`${templateData?.title || ""}`} />
-                <H2 text={templateData?.displayTitle || ""} className="pb-0" />
+                <H1 text={templateData?.displayTitle || ""} className="pb-0" />
+                <H2 text={`${templateData?.title || ""}`} className="pb-0" />
             </div>
             <div className="grid md:grid-cols-3 w-full my-8 gap-4">
                 <div className="md:col-span-2 flex flex-col gap-4">
                     <InfocardsMap
                         title="Details"
                         titleFormat="H3"
+                        // @ts-expect-error its fine
                         data={templateData}
                         keysFilter={surveyDetailKeys}
                         className="md:col-span-2"
@@ -55,6 +55,7 @@ export default async function Home({
                                 <InfocardsMap
                                     key={index}
                                     title={question.text}
+                                    // @ts-expect-error its fine
                                     data={question}
                                     keysFilter={surveyTemplateQuestionKeys}
                                 />

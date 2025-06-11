@@ -8,7 +8,6 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import React, { Suspense } from "react";
-// import { headers } from "next/headers";
 import Loading from "./loading";
 import Link from "next/link";
 import { titleCase } from "@/functions/utils";
@@ -22,6 +21,14 @@ export default async function Layout({
     const headerList = await headers();
     const pathElements = headerList.get("x-current-path")?.split("/");
     pathElements?.shift();
+    const makeLink = (indexNumber: number) => {
+        const elementsBefore = pathElements?.filter(
+            (element, index) => index <= indexNumber
+        );
+        const linkString = "/" + elementsBefore?.join("/") || "";
+        console.log(linkString);
+        return linkString;
+    };
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -34,12 +41,15 @@ export default async function Layout({
                                 <React.Fragment key={index}>
                                     <BreadcrumbItem>
                                         <BreadcrumbLink asChild>
-                                            <Link href={"/admin"}>
+                                            <Link href={makeLink(index)}>
                                                 {titleCase(element)}
                                             </Link>
                                         </BreadcrumbLink>
                                     </BreadcrumbItem>
-                                    <BreadcrumbSeparator />
+                                    {pathElements?.length &&
+                                    index < pathElements?.length - 1 ? (
+                                        <BreadcrumbSeparator />
+                                    ) : null}
                                 </React.Fragment>
                             ))}
                         </BreadcrumbList>

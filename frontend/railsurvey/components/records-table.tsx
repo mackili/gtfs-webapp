@@ -1,9 +1,7 @@
 "use client";
 import { H4 } from "@/components/ui/typography";
-import { queryTemplatesTable } from "@/functions/dbQuery";
-import { columns as originalColumns } from "./columns";
 import { DataTable } from "@/components/data-table";
-import { QueryResponse } from "@/functions/dbQuery";
+import { QueryResponse, QueryResponseItem } from "@/functions/dbQuery";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -18,27 +16,45 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { SurveyTemplate } from "@/types/surveys";
+import { ColumnsDefinition } from "@/types/misc";
 
-const columns = originalColumns.map((column) => {
-    if (column.accessorKey === "id" || column.accessorKey === "templateTitle") {
-        return {
-            ...column,
-            cell: ({ row }: { row: { original: SurveyTemplate } }) => (
-                <Link
-                    href={`/admin/surveys/${row.original.id}`}
-                    className="hover:underline"
-                >
-                    {column.accessorKey === "id"
-                        ? row.original.id
-                        : row.original.title}
-                </Link>
-            ),
-        };
-    }
-    return column;
-});
+const columnsDisplay = (
+    url: string | null,
+    originalColumns: ColumnsDefinition[]
+) =>
+    originalColumns.map((column) => {
+        if (column.link === true) {
+            return {
+                ...column,
+                cell: ({ row }: { row: { original: QueryResponseItem } }) => (
+                    <Link
+                        href={`${url || ""}/${row.original.id}`}
+                        className="hover:underline"
+                    >
+                        {(
+                            row.original as unknown as Record<
+                                string,
+                                string | number | null | undefined
+                            >
+                        )[column.accessorKey] || ""}
+                    </Link>
+                ),
+            };
+        }
+        return column;
+    });
 
-export default function TemplatesTable() {
+export default function RecordTable({
+    data,
+    url,
+    columns,
+    objectName = null,
+}: {
+    data: QueryResponse;
+    url: string | null;
+    columns: ColumnsDefinition[];
+    objectName: string | null;
+}) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -126,17 +142,8 @@ export default function TemplatesTable() {
     };
 
     useEffect(() => {
-        const fetchTemplatesData = async () => {
-            const data = await queryTemplatesTable({
-                order: "id.asc",
-                limit: displayLimit,
-                range: range,
-            });
-            console.log(data);
-            setTemplatesData(data);
-        };
-        fetchTemplatesData();
-    }, [displayLimit, range]);
+        setTemplatesData(data);
+    }, [data]);
 
     return (
         <div className="grid grid-cols-1 my-4 w-full">
@@ -153,7 +160,7 @@ export default function TemplatesTable() {
                             typeof templatesData.totalSize === "number"
                                 ? `of ${templatesData.totalSize}`
                                 : ""
-                        } survey templates`}
+                        } ${objectName || ""}`}
                     />
                 ) : (
                     <H4 text="Loading survey templates..." />
@@ -161,7 +168,7 @@ export default function TemplatesTable() {
             </div>
             <div>
                 <DataTable
-                    columns={columns}
+                    columns={columnsDisplay(url, columns)}
                     data={
                         templatesData
                             ? (templatesData.items as SurveyTemplate[])
@@ -198,7 +205,11 @@ export default function TemplatesTable() {
                     <Button
                         variant="outline"
                         size="sm"
-                        disabled={range[1] == templatesData?.totalSize}
+                        disabled={
+                            !templatesData?.totalSize ||
+                            templatesData?.totalSize === "*" ||
+                            range[1] >= templatesData?.totalSize
+                        }
                         onClick={() => {
                             handleRangeChange("increase");
                         }}
