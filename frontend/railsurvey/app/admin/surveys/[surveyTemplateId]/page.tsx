@@ -37,40 +37,46 @@ export default async function Home({
                 <H2 text={templateData?.displayTitle || ""} className="pb-0" />
             </div>
             <div className="grid md:grid-cols-3 w-full my-8 gap-4">
-                <InfocardsMap
-                    title="Details"
-                    titleFormat="H3"
-                    data={templateData}
-                    keysFilter={surveyDetailKeys}
-                    className="md:col-span-2"
-                />
-                <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-col border bg-background shadow-xs">
-                    <H3 text="Authors" />
-                    {templateData.surveyTemplateAuthors?.map(
-                        (author, index) => (
-                            <InfocardsMap
-                                key={index}
-                                // @ts-expect-error requested sql result, hence one more depth level
-                                title={`${author.author.firstName} ${author.author.lastName}`}
-                                // @ts-expect-error requested sql result, hence one more depth level
-                                data={author.author}
-                            />
-                        )
-                    )}
-                </div>
-                <div className="md:col-span-2 transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4 md:grid-cols-2">
-                    <H3
-                        text="Questions"
-                        className="pb-2 border-b md:col-span-2"
+                <div className="md:col-span-2 flex flex-col gap-4">
+                    <InfocardsMap
+                        title="Details"
+                        titleFormat="H3"
+                        data={templateData}
+                        keysFilter={surveyDetailKeys}
+                        className="md:col-span-2"
                     />
-                    {templateData.templateQuestions?.map((question, index) => (
-                        <InfocardsMap
-                            key={index}
-                            title={question.text}
-                            data={question}
-                            keysFilter={surveyTemplateQuestionKeys}
+                    <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4 md:grid-cols-2">
+                        <H3
+                            text="Questions"
+                            className="pb-2 border-b md:col-span-2"
                         />
-                    ))}
+                        {templateData.templateQuestions?.map(
+                            (question, index) => (
+                                <InfocardsMap
+                                    key={index}
+                                    title={question.text}
+                                    data={question}
+                                    keysFilter={surveyTemplateQuestionKeys}
+                                />
+                            )
+                        )}
+                    </div>
+                </div>
+                <div>
+                    <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-col border bg-background shadow-xs gap-4">
+                        <H3 text="Authors" />
+                        {templateData.surveyTemplateAuthors?.map(
+                            (author, index) => (
+                                <InfocardsMap
+                                    key={index}
+                                    // @ts-expect-error requested sql result, hence one more depth level
+                                    title={`${author.author.firstName} ${author.author.lastName}`}
+                                    // @ts-expect-error requested sql result, hence one more depth level
+                                    data={author.author}
+                                />
+                            )
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

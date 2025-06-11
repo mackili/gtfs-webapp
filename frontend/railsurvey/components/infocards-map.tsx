@@ -1,20 +1,6 @@
 import { twMerge } from "tailwind-merge";
 import { H1, H2, H3, H4, P } from "./ui/typography";
-
-const DECAMELIZE_REGEXP = /([a-z\d])([A-Z])/g;
-const PROPERIZE_REGEXP = /\w\S*/g;
-
-function decamelize(str: string) {
-    return str.replace(DECAMELIZE_REGEXP, "$1 $2");
-}
-
-function titleCase(str: string) {
-    return str.replace(
-        PROPERIZE_REGEXP,
-        (text: string) =>
-            text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
-    );
-}
+import { decamelize, titleCase } from "@/functions/utils";
 
 export function InfocardsMap({
     title,
@@ -29,12 +15,10 @@ export function InfocardsMap({
     keysFilter?: string[];
     className?: string;
 }) {
-    console.log(data);
-    console.log(keysFilter);
     return (
         <div
             className={twMerge(
-                "transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs flex-1/2 gap-2 sm:grid-cols-2",
+                "transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs flex-1/2 gap-2",
                 className
             )}
         >
@@ -61,13 +45,13 @@ export function InfocardsMap({
                             return <P text={title} className="col-span-full" />;
                     }
                 })()}
-            <div>
+            <div className="gap-1 flex flex-col">
                 {Object.keys(data)
                     .filter((key) =>
                         keysFilter ? keysFilter.includes(key) : true
                     )
                     .map((key, index) => (
-                        <div key={index} className="flex flex-row">
+                        <div key={index} className="flex flex-row w-full">
                             <P
                                 text={`${titleCase(decamelize(key))}:`}
                                 className="leading-4 text-sm font-light text-primary"

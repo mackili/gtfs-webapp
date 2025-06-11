@@ -99,7 +99,6 @@ export async function queryDB(
             endpoint += `&${key}=${value.toString()}`;
         }
     });
-    console.log(endpoint);
     const res = await fetch(endpoint);
     return res.json();
 }
@@ -129,7 +128,6 @@ export async function queryStationsTable(input: QueryTableInput) {
 }
 
 export async function queryRouteDetails(routeId: string) {
-    console.log(routeId);
     const queryInput: QueryInput = {
         table: "routes",
         fields: "routeId,routeType,agencyId,routeShortName,routeLongName,routeUrl,routeDesc",
@@ -140,7 +138,6 @@ export async function queryRouteDetails(routeId: string) {
 }
 
 export async function querySurveyTemplate(surveyTemplateId: number) {
-    console.log(surveyTemplateId);
     const queryInput: QueryInput = {
         table: "surveyTemplate",
         fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat):templateQuestions",
@@ -168,6 +165,28 @@ export async function queryRoutesTable(input: QueryTableInput) {
         return item;
     });
     data.items = itemsUpdated;
+    return data;
+}
+
+export async function queryTemplatesTable(input: QueryTableInput) {
+    const queryInput: QueryInput = {
+        table: "surveyTemplate",
+        fields: "id,title,displayTitle,type",
+        order: input.order,
+        offset: input.offset,
+        range: input.range?.toString().replace(",", "-"),
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    console.log(JSON.stringify(data));
+    // const itemsUpdated = (data.items as SurveyTemplate[]).map((item) => {
+    //     item.routeShortName =
+    //         item.routeShortName ||
+    //         (typeof item.routeLongName === "string"
+    //             ? item.routeLongName.substring(0, 40)
+    //             : "");
+    //     return item;
+    // });
+    // data.items = itemsUpdated;
     return data;
 }
 
@@ -208,6 +227,5 @@ export async function upsertSurveyTemplate(
         table: "surveyTemplate",
         data: data,
     })) as UpsertResponse;
-    console.log(JSON.stringify(result));
     return result;
 }
