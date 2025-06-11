@@ -1,14 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-    IconCamera,
-    IconFileAi,
-    IconFileDescription,
-    IconHelp,
-    IconSearch,
-    IconSettings,
-} from "@tabler/icons-react";
+import { IconHelp, IconSearch, IconSettings } from "@tabler/icons-react";
 import {
     CircleGauge,
     House,
@@ -19,6 +12,7 @@ import {
     Code,
     FileQuestion,
     ListStart,
+    Activity,
 } from "lucide-react";
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
@@ -48,27 +42,29 @@ const data = {
         },
         {
             title: "Dashboard",
-            url: "#",
+            url: "",
             icon: CircleGauge,
         },
         {
             title: "Stations",
-            url: "/admin/stations?limit=9",
+            url: "/admin/stations",
             icon: House,
+            query: { limit: "9" },
         },
         {
             title: "Routes",
-            url: "/admin/routes?limit=9",
+            url: "/admin/routes",
             icon: Workflow,
+            query: { limit: "9" },
         },
         {
             title: "Trips",
-            url: "#",
+            url: "",
             icon: CalendarCheck,
         },
         {
             title: "Vehicles",
-            url: "#",
+            url: "",
             icon: TrainFront,
         },
     ],
@@ -92,13 +88,21 @@ const data = {
     documents: [
         {
             name: "Surveys",
-            url: "/admin/surveys?limit=9",
+            url: "/admin/surveys",
             icon: FileQuestion,
+            query: { limit: "9" },
         },
         {
             name: "Calculations",
             url: "#",
             icon: Code,
+            query: { limit: "9" },
+        },
+        {
+            name: "Service Aspects",
+            url: "/admin/aspects",
+            icon: Activity,
+            query: { limit: "9" },
         },
     ],
 };

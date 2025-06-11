@@ -2,7 +2,7 @@ import { ColumnsDefinition } from "@/types/misc";
 export const columns: ColumnsDefinition[] = [
     {
         accessorKey: "id",
-        header: "Survey Template ID",
+        header: "Survey Aspect ID",
         link: true,
     },
     {

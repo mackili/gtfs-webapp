@@ -37,6 +37,7 @@ function dataToSurveyTemplate<SurveyTemplate>(
     formdata: Record<string, string | number | null | undefined>
 ) {
     const filtered = filterMatchingKeysByPrefix(formdata, templateKey);
+    console.log(filtered);
     const templateInfo = filtered ? filtered[0] : undefined;
     return templateInfo as SurveyTemplate;
 }
@@ -54,6 +55,11 @@ function filterMatchingKeysByPrefix(
     const keysByPrefix = Object.keys(data).filter((key) =>
         key.startsWith(prefix)
     );
+    const filteredData: Record<string, string | number | null | undefined> = {};
+    keysByPrefix.forEach((key) => {
+        filteredData[key] = data[key];
+    });
+
     const recordIds: (string | number)[] = [];
     const uniqueProperties: string[] = [];
     keysByPrefix.map((key) => {
@@ -67,9 +73,11 @@ function filterMatchingKeysByPrefix(
         }
     });
     const res: Record<string | number, object> = {};
+    console.log(uniqueProperties);
     recordIds.map((id) => {
-        res[id] = getValuesById(originalData, id, uniqueProperties);
+        res[id] = getValuesById(filteredData, id, uniqueProperties);
     });
+    console.log(res);
     return Object.values(res).length > 0
         ? (Object.values(res) as
               | SurveyTemplate[]
@@ -98,6 +106,7 @@ function getValuesById(
 ) {
     const response: Record<string, string | number | null | undefined> = {};
     Object.keys(data).map((key) => {
+        console.log(key);
         if (!key.includes(typeof id === "number" ? id.toString() : id)) {
             return;
         }
@@ -108,4 +117,60 @@ function getValuesById(
         response[propName] = data[key];
     });
     return response;
+}
+
+export function templateSummaryToFormData(data: TemplateSummary | undefined) {
+    if (!data) return undefined;
+    const formdata: Record<string, string | number | null | undefined> = {
+        "templateInfo:0:description": data.description,
+        "templateInfo:0:displayTitle": data.displayTitle,
+        "templateInfo:0:title": data.title,
+        "templateInfo:0:type": data.type,
+        "templateInfo:0:id": data.id,
+    };
+    const formatted = {
+        ...formdata,
+        ...arrayToObject(data.surveyTemplateAuthors, "authors"),
+        ...arrayToObject(data.templateQuestions, "templateQuestions"),
+        ...arrayToObject(data.templateSections, "templateSections"),
+    };
+    return Object.fromEntries(
+        Object.entries(formatted).filter(
+            ([, value]) => value !== null && value !== undefined
+        )
+    );
+}
+
+function arrayToObject(
+    data: TemplateQuestion[] | TemplateSection[] | Author[] | undefined,
+    table: "templateQuestions" | "templateSections" | "authors"
+) {
+    const formdata: Record<string, string | number | null | undefined> = {};
+    if (!data) return formdata;
+    switch (table) {
+        case "authors":
+            data.map((value) =>
+                // @ts-expect-error due to database design
+                Object.keys(value.author).map(
+                    (key) =>
+                        // @ts-expect-error due to database design
+                        (formdata[`${table}:${value.author.id}:${key}`] =
+                            // @ts-expect-error due to database design
+                            value.author[key] || undefined)
+                )
+            );
+            break;
+
+        default:
+            data.map((value) =>
+                Object.keys(value).map(
+                    (key) =>
+                        // @ts-expect-error due to database design
+                        (formdata[`${table}:${value.id}:${key}`] = value[key])
+                )
+            );
+            break;
+    }
+
+    return formdata;
 }

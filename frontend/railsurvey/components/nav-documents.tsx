@@ -26,6 +26,7 @@ export function NavDocuments({
         name: string;
         url: string;
         icon: LucideIcon;
+        query: Record<string, string>;
     }[];
 }) {
     const { isMobile } = useSidebar();
@@ -37,10 +38,12 @@ export function NavDocuments({
                 {items.map((item) => (
                     <SidebarMenuItem key={item.name}>
                         <SidebarMenuButton asChild>
-                            <a href={item.url}>
+                            <Link
+                                href={{ pathname: item.url, query: item.query }}
+                            >
                                 <item.icon />
                                 <span>{item.name}</span>
-                            </a>
+                            </Link>
                         </SidebarMenuButton>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -57,7 +60,11 @@ export function NavDocuments({
                                 side={isMobile ? "bottom" : "right"}
                                 align={isMobile ? "end" : "start"}
                             >
-                                <Link href="/admin/surveys/new">
+                                <Link
+                                    href={{
+                                        pathname: `${item.url}/edit`,
+                                    }}
+                                >
                                     <DropdownMenuItem>
                                         <PlusCircle />
                                         <span>Create</span>

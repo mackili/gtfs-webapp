@@ -81,13 +81,21 @@ export const templateQuestionSchema = z.object({
 export type TemplateQuestion = z.infer<typeof templateQuestionSchema>;
 
 export const serviceAspectSchema = z.object({
-    id: z.number().int(),
+    id: z.number().int().optional(),
     title: z.string().max(80),
+});
+
+export type ServiceAspect = z.infer<typeof serviceAspectSchema>;
+
+export const serviceAspectFormula = z.object({
+    id: z.number().int().optional(),
+    surveyTemplateId: z.number().int(),
+    serviceAspectId: z.number().int(),
     weight: z.number(),
     formula: z.string().nullable(),
 });
 
-export type ServiceAspect = z.infer<typeof serviceAspectSchema>;
+export type ServiceAspectFormula = z.infer<typeof serviceAspectFormula>;
 
 export const measuresAspectSchema = z.object({
     templateQuestionId: z.number().int(),

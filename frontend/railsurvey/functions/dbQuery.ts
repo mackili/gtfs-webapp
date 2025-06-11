@@ -1,7 +1,7 @@
 "use server";
 import { SummaryData, AgencySummaryView, AgencyStatic } from "@/types/db";
 import { Route, Stops } from "@/types/gtfs";
-import { TemplateSummary } from "@/types/surveys";
+import { ServiceAspect, TemplateSummary } from "@/types/surveys";
 
 type QueryInput = {
     table: string;
@@ -146,7 +146,7 @@ export async function queryRouteDetails(routeId: string) {
 export async function querySurveyTemplate(surveyTemplateId: number) {
     const queryInput: QueryInput = {
         table: "surveyTemplate",
-        fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat):templateQuestions",
+        fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSections:templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat,isRequired)",
         filter: `id=eq.${surveyTemplateId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
@@ -184,17 +184,29 @@ export async function queryTemplatesTable(input: QueryTableInput) {
         range: input.range?.toString().replace(",", "-"),
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
-    console.log(JSON.stringify(data));
-    // const itemsUpdated = (data.items as SurveyTemplate[]).map((item) => {
-    //     item.routeShortName =
-    //         item.routeShortName ||
-    //         (typeof item.routeLongName === "string"
-    //             ? item.routeLongName.substring(0, 40)
-    //             : "");
-    //     return item;
-    // });
-    // data.items = itemsUpdated;
     return data;
+}
+
+export async function queryServiceAspectTable(input: QueryTableInput) {
+    const queryInput: QueryInput = {
+        table: "serviceAspect",
+        fields: "id,title",
+        order: input.order,
+        offset: input.offset,
+        range: input.range?.toString().replace(",", "-"),
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
+}
+
+export async function queryServiceAspect(serviceAspectId: number) {
+    const queryInput: QueryInput = {
+        table: "serviceAspect",
+        // fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat):templateQuestions",
+        filter: `id=eq.${serviceAspectId}`,
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data.items[0] as ServiceAspect;
 }
 
 type UpsertInput = {
@@ -202,7 +214,7 @@ type UpsertInput = {
     data: Array<object> | object;
 };
 
-type UpsertResponse = {
+export type UpsertResponse = {
     isSuccess: boolean;
     errorMessage?: string;
     data?: Array<object> | object;
@@ -228,10 +240,22 @@ export async function upsertDB(
 }
 
 export async function upsertSurveyTemplate(
-    data: TemplateSummary
+    data: TemplateSummary,
+    rollback: boolean = true
+): Promise<UpsertResponse> {
+    console.log(JSON.stringify(data));
+    const result = (await upsertDB({
+        table: `surveyTemplate/upsert?perform_rollback=${rollback}`,
+        data: data,
+    })) as UpsertResponse;
+    return result;
+}
+
+export async function upsertServiceAspect(
+    data: ServiceAspect
 ): Promise<UpsertResponse> {
     const result = (await upsertDB({
-        table: "surveyTemplate",
+        table: "serviceAspect",
         data: data,
     })) as UpsertResponse;
     return result;

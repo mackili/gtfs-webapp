@@ -1,5 +1,5 @@
-from pydantic import BaseModel, AnyUrl
-from typing import List, Optional
+from pydantic import BaseModel, AnyUrl, RootModel
+from typing import List, Optional, Dict, Union, Any
 
 
 class GTFSRT_Options(BaseModel):
@@ -27,9 +27,9 @@ class SurveyTemplate(BaseModel):
 
 class Author(BaseModel):
     id: Optional[str | int] = None
-    firstName: str | None = None
-    lastName: str | None = None
-    institutionName: str | None = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
+    institutionName: Optional[str] = None
 
 
 class SurveyTemplateAuthor(BaseModel):
@@ -65,3 +65,7 @@ class TemplateSummary(SurveyTemplate):
     surveyTemplateAuthors: Optional[list[Author]] = None
     templateSections: Optional[list[TemplateSection]] = None
     templateQuestions: Optional[list[TemplateQuestion]] = None
+
+
+class UpsertInput(RootModel[Dict[Union[str, int], Any]]):
+    pass

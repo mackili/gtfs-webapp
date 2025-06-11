@@ -65,9 +65,20 @@ export function Blockquote({ text }: { text: string }) {
         <blockquote className="mt-6 border-l-2 pl-6 italic">{text}</blockquote>
     );
 }
-export function InlineCode({ text }: { text: string }) {
+export function InlineCode({
+    text,
+    className,
+}: {
+    text: string;
+    className?: string;
+}) {
     return (
-        <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+        <code
+            className={twMerge(
+                "relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold",
+                className
+            )}
+        >
             {text}
         </code>
     );

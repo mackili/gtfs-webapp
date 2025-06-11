@@ -38,12 +38,12 @@ def read_query(
     order: str | None = None,
     range: str | None = None,
 ):
-    endpoint = BASE_URL + "/" + humps.decamelize(table)
+    endpoint = BASE_URL + "/" + humps.decamelize(table) + "?"
     headers = {"Prefer": "count=exact"}
     if fields != None:
-        endpoint += "?select=" + humps.decamelize(fields)
+        endpoint += "&select=" + humps.decamelize(fields)
     if query != None:
-        endpoint += "?" + humps.decamelize(query)
+        endpoint += "&" + humps.decamelize(query)
     if filter != None:
         endpoint += "&" + filter
     if order != None:
@@ -109,23 +109,27 @@ async def post_gtfs(file: UploadFile):
     return {"filename": file.filename}
 
 
-@app.post("/upsert/{table}")
-async def upsert_table(table: str, data):
+@app.post("/{table}")
+async def upsert_table(table: str, data: UpsertInput):
     endpoint = BASE_URL + "/" + humps.decamelize(table)
     headers = {
-        "Prefer": "resolution=merge-duplicates",
-        "Prefer": "return=representation",
+        "Prefer": "resolution=merge-duplicates,return=representation",
     }
     try:
-        res = requests.post(endpoint, headers=headers, data=data)
-        resJson = await res.json()
+        res = requests.post(
+            endpoint, headers=headers, json=humps.decamelize(data.model_dump())
+        )
+        resJson = res.json()
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     return resJson
 
 
-@app.post("/surveyTemplate")
-async def upsert_template(data: TemplateSummary):
+@app.post("/surveyTemplate/upsert")
+async def upsert_template(
+    data: TemplateSummary,
+    perform_rollback: str = "false",
+):
     try:
         template: SurveyTemplate = await UpsertSurveyTemplate(data, BASE_URL)
         result: TemplateSummary = TemplateSummary(
@@ -144,6 +148,7 @@ async def upsert_template(data: TemplateSummary):
             data, BASE_URL, template.id
         )
         return result
-    except Exception as e:
-        await rollback(result, BASE_URL)
-        raise HTTPException(status_code=400, detail="Transaction rolled back")
+    except HTTPException as e:
+        if perform_rollback == "true":
+            await rollback(result, BASE_URL)
+        raise HTTPException(status_code=400, detail=e.detail)

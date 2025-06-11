@@ -64,12 +64,22 @@ async def UpsertAuthor(data: TemplateSummary, url: str) -> list[Author]:
     endpoint = f"{url}/{AUTHOR_TABLE}"
     if data.surveyTemplateAuthors == None:
         return [Author()]
-    authors = []
+    authors_update = []
+    authors_insert = []
     for author in data.surveyTemplateAuthors:
-        authors.append(author.model_dump(exclude_unset=True))
+        if author.id != None:
+            authors_update.append(author.model_dump(exclude_unset=True))
+        else:
+            authors_insert.append(author.model_dump(exclude_unset=True))
     try:
-        res = requests.post(endpoint, headers=HEADERS, json=humps.decamelize(authors))
-        resJson = res.json()
+        res = requests.post(
+            endpoint, headers=HEADERS, json=humps.decamelize(authors_update)
+        )
+        resJson: list[dict] = res.json()
+        res = requests.post(
+            endpoint, headers=HEADERS, json=humps.decamelize(authors_insert)
+        )
+        resJson = resJson + res.json()
     except requests.exceptions.JSONDecodeError:
         raise HTTPException(status_code=res.status_code, detail=res.reason)
     return [Author(**au) for au in humps.camelize(resJson)]
@@ -109,12 +119,20 @@ async def UpsertTemplateSection(
         raise HTTPException(status_code=400, detail=f"Sections missing TemplateId")
     if data.templateSections == None:
         return []
-    sections = []
+    sections_insert = []
+    sections_update = []
     for section in data.templateSections:
         section.surveyTemplateId = templateId
-        sections.append(section.model_dump(exclude_unset=True))
-    resJson = await request(endpoint, sections, [201])
-    return [TemplateSection(**se) for se in humps.camelize(resJson)]
+        if section.id == None:
+            sections_insert.append(section.model_dump(exclude_unset=True))
+        else:
+            sections_update.append(section.model_dump(exclude_unset=True))
+
+    resJson_update = await request(endpoint, sections_update, [200, 201])
+    resJson_insert = await request(endpoint, sections_insert, [200, 201])
+    return [
+        TemplateSection(**se) for se in humps.camelize(resJson_insert + resJson_update)
+    ]
 
 
 # TODO: Add support for template section assignment
@@ -126,14 +144,21 @@ async def UpsertTemplateQuestions(
         raise HTTPException(status_code=400, detail=f"Questions missing TemplateId")
     if data.templateQuestions == None:
         return []
-    questions = []
+    questions_insert = []
+    questions_update = []
     for question in data.templateQuestions:
         question.surveyTemplateId = templateId
         if not isinstance(question.templateSectionId, int):
             question.templateSectionId = None
-        questions.append(question.model_dump(exclude_unset=True))
-    resJson = await request(endpoint, questions, [201])
-    return [TemplateQuestion(**se) for se in humps.camelize(resJson)]
+        if question.id == None:
+            questions_insert.append(question.model_dump(exclude_unset=True))
+        else:
+            questions_update.append(question.model_dump(exclude_unset=True))
+    resJson_insert = await request(endpoint, questions_insert, [200, 201])
+    resJson_update = await request(endpoint, questions_update, [200, 201])
+    return [
+        TemplateQuestion(**se) for se in humps.camelize(resJson_insert + resJson_update)
+    ]
 
 
 async def rollback(data: TemplateSummary, url: str):
