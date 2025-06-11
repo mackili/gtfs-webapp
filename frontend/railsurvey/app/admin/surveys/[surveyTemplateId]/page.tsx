@@ -46,10 +46,7 @@ export default async function Home({
                         className="md:col-span-2"
                     />
                     <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4 md:grid-cols-2">
-                        <H3
-                            text="Questions"
-                            className="pb-2 border-b md:col-span-2"
-                        />
+                        <H3 text="Questions" className="md:col-span-2" />
                         {templateData.templateQuestions?.map(
                             (question, index) => (
                                 <InfocardsMap
