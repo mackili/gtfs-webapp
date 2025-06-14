@@ -30,7 +30,7 @@ export default async function Home({
     return (
         <div className="flex flex-col mx-10">
             <div className="grid w-full my-10">
-                <H1 text="Survey templates" />
+                <H1 text="Survey Templates" />
                 <RecordTable
                     data={data}
                     url={headerList.get("x-current-path")}

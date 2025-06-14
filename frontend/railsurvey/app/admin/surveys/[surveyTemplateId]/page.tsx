@@ -4,6 +4,7 @@ import { TemplateSummary } from "@/types/surveys";
 import { InfocardsMap } from "@/components/infocards-map";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { headers } from "next/headers";
 
 export const surveyDetailKeys = [
     "id",
@@ -28,6 +29,7 @@ export default async function Home({
 }: {
     params: Promise<{ surveyTemplateId: number }>;
 }) {
+    const currentPath = (await headers()).get("x-current-path");
     const { surveyTemplateId } = await params;
     const templateData: TemplateSummary = await querySurveyTemplate(
         surveyTemplateId
@@ -35,7 +37,7 @@ export default async function Home({
     return (
         <div className="flex flex-col mx-10">
             <div className="flex flex-col justify-start content-center flex-wrap md:flex-nowrap md:flex-row w-full md:justify-between items-center gap-8 my-10">
-                <div className="flex w-full items-end gap-8 my-10">
+                <div className="flex w-full items-end gap-8">
                     <H1
                         text={templateData?.displayTitle || ""}
                         className="pb-0"
@@ -80,6 +82,62 @@ export default async function Home({
                                     keysFilter={surveyTemplateQuestionKeys}
                                 />
                             ))}
+                    </div>
+                    <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4">
+                        <div className="flex content-center flex-nowrap flex-row w-full justify-between">
+                            <H3
+                                text="Measured Service Aspects"
+                                className="md:col-span-2"
+                            />
+                            <Link
+                                href={{
+                                    pathname: "/admin/aspects/formulas/edit",
+                                    query: {
+                                        surveyTemplateId: surveyTemplateId,
+                                    },
+                                }}
+                            >
+                                <Button
+                                    variant="outline"
+                                    className="cursor-pointer"
+                                >
+                                    Add
+                                </Button>
+                            </Link>
+                        </div>
+                        {(templateData.serviceAspectFormulas || []).map(
+                            (serviceAspectFormula, index) => (
+                                <InfocardsMap
+                                    key={index}
+                                    title={
+                                        serviceAspectFormula.serviceAspect.title
+                                    }
+                                    // @ts-expect-error its fine
+                                    data={null}
+                                    editPath={{
+                                        pathname:
+                                            "/admin/aspects/formulas/edit",
+                                        query: {
+                                            surveyTemplateId: surveyTemplateId,
+                                            id: serviceAspectFormula.id,
+                                        },
+                                    }}
+                                    deletePath={{
+                                        pathname:
+                                            "/admin/aspects/formulas/delete",
+                                        query: {
+                                            retUrl: currentPath || "",
+                                            id: String(serviceAspectFormula.id),
+                                        },
+                                    }}
+                                    contentOverride={
+                                        <div className="font-mono">
+                                            {serviceAspectFormula.formula}
+                                        </div>
+                                    }
+                                />
+                            )
+                        )}
                     </div>
                 </div>
                 <div>

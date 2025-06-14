@@ -92,7 +92,7 @@ export const serviceAspectFormula = z.object({
     surveyTemplateId: z.number().int(),
     serviceAspectId: z.number().int(),
     weight: z.number(),
-    formula: z.string().nullable(),
+    formula: z.string(),
 });
 
 export type ServiceAspectFormula = z.infer<typeof serviceAspectFormula>;
@@ -130,10 +130,15 @@ export const submittedAnswerSchema = z.object({
 
 export type SubmittedAnswer = z.infer<typeof submittedAnswerSchema>;
 
+export type ServiceAspectFormulaWithAspect = ServiceAspectFormula & {
+    serviceAspect: ServiceAspect;
+};
+
 export interface TemplateSummary extends SurveyTemplate {
     surveyTemplateAuthors?: Author[];
     templateSections?: SummarySection[] | TemplateSection[];
     templateQuestions?: TemplateQuestion[];
+    serviceAspectFormulas?: ServiceAspectFormulaWithAspect[];
 }
 export interface SummarySection extends TemplateSection {
     hasRepeater: boolean;

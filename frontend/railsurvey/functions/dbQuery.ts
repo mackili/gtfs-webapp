@@ -1,7 +1,13 @@
 "use server";
 import { SummaryData, AgencySummaryView, AgencyStatic } from "@/types/db";
 import { Route, Stops } from "@/types/gtfs";
-import { ServiceAspect, TemplateSummary } from "@/types/surveys";
+import {
+    ServiceAspect,
+    ServiceAspectFormula,
+    SurveyTemplate,
+    TemplateSummary,
+} from "@/types/surveys";
+import { encodeBinary, decodeBinary } from "./encoder";
 
 type QueryInput = {
     table: string;
@@ -146,10 +152,16 @@ export async function queryRouteDetails(routeId: string) {
 export async function querySurveyTemplate(surveyTemplateId: number) {
     const queryInput: QueryInput = {
         table: "surveyTemplate",
-        fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSections:templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat,isRequired)",
+        fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSections:templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat,isRequired),serviceAspectFormulas:serviceAspectFormula(id,weight,formula,serviceAspect(id,title))",
         filter: `id=eq.${surveyTemplateId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    // Decoding formula from binary to text
+    (data.items as TemplateSummary[]).map((template) =>
+        template.serviceAspectFormulas?.map(
+            (formula) => (formula.formula = decodeBinary(formula.formula))
+        )
+    );
     return data.items[0] as TemplateSummary;
 }
 
@@ -209,6 +221,22 @@ export async function queryServiceAspect(serviceAspectId: number) {
     return data.items[0] as ServiceAspect;
 }
 
+export async function queryServiceAspectFormulaList(serviceAspectId: number) {
+    const queryInput: QueryInput = {
+        table: "serviceAspectFormula",
+        fields: "id,surveyTemplateId,surveyTemplate(id,title,displayTitle,type),weight,formula",
+        query: `serviceAspectId=eq.${serviceAspectId}`,
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    type ServiceAspectFormulaWithTemplate = ServiceAspectFormula & {
+        surveyTemplate: SurveyTemplate;
+    };
+    (data.items as ServiceAspectFormulaWithTemplate[]).map(
+        (formula) => (formula.formula = decodeBinary(formula.formula))
+    );
+    return data.items as ServiceAspectFormulaWithTemplate[];
+}
+
 type UpsertInput = {
     table: string;
     data: Array<object> | object;
@@ -259,4 +287,40 @@ export async function upsertServiceAspect(
         data: data,
     })) as UpsertResponse;
     return result;
+}
+
+export async function upsertServiceAspectFormula(
+    data: ServiceAspectFormula
+): Promise<UpsertResponse> {
+    const result = (await upsertDB({
+        table: "serviceAspectFormula",
+        data: { ...data, formula: encodeBinary(data.formula) },
+    })) as UpsertResponse;
+    return result;
+}
+
+type DeleteInput = {
+    ids: string[] | number[];
+    idLabel?: string;
+    table: string;
+};
+
+type DeleteOutput = {
+    statusCode: number;
+    response?: object | [];
+};
+
+export async function deleteDB(input: DeleteInput): Promise<DeleteOutput> {
+    const endpoint =
+        process.env.BACKEND_URL +
+        `/${input.table}?ids=${input.ids.join(`ids=`)}${
+            input.idLabel ? `&idLabel=${input.idLabel}` : ""
+        }`;
+    const res = await fetch(endpoint, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    return { statusCode: res.status, response: await res.json() };
 }

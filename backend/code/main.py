@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, UploadFile
-from typing import Union
+from fastapi import FastAPI, HTTPException, UploadFile, Query
+from typing import Union, Annotated
 import requests
 import subprocess
 import simplejson as json
@@ -49,7 +49,7 @@ def read_query(
     if order != None:
         endpoint += "&order=" + humps.decamelize(order)
     if offset != None:
-        endpoint += "&offset=" + str(limit)
+        endpoint += "&offset=" + str(offset)
     if limit != None:
         endpoint += "&limit=" + str(limit)
     if range != None:
@@ -152,3 +152,24 @@ async def upsert_template(
         if perform_rollback == "true":
             await rollback(result, BASE_URL)
         raise HTTPException(status_code=400, detail=e.detail)
+
+
+@app.delete("/{table}")
+async def delete_table(
+    table: str, ids: Annotated[list[str] | str, Query()], idLabel: str = "id"
+):
+    ids_list: list[str] = []
+    headers = {
+        "Prefer": "return=representation",
+    }
+    if isinstance(ids, str):
+        ids_list.append(ids)
+    else:
+        ids_list = ids
+    endpoint = f"{BASE_URL}/{humps.decamelize(table)}?{humps.decamelize(idLabel)}=in.({','.join(ids_list)})"
+    try:
+        res = requests.delete(endpoint, headers=headers)
+        resJson = res.json()
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    return resJson

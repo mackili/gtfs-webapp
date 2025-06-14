@@ -69,3 +69,22 @@ class TemplateSummary(SurveyTemplate):
 
 class UpsertInput(RootModel[Dict[Union[str, int], Any]]):
     pass
+
+
+class SurveySubmission(BaseModel):
+    id: Optional[int]
+    surveyId: int
+    tripId: Optional[int]
+    tickerHash: Optional[str]
+    timestamp: Optional[int]
+
+
+class SubmittedAnswer(BaseModel):
+    id: Optional[int]
+    submissionId: int
+    templateQuestionId: int
+    value: str | int | None
+
+
+class SurveySubmissionSummary(SurveySubmission):
+    answers: List[SubmittedAnswer]

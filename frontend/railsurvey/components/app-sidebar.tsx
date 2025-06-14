@@ -13,6 +13,7 @@ import {
     FileQuestion,
     ListStart,
     Activity,
+    FlaskConical,
 } from "lucide-react";
 import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
@@ -87,21 +88,21 @@ const data = {
     ],
     documents: [
         {
-            name: "Surveys",
+            name: "Survey Templates",
             url: "/admin/surveys",
             icon: FileQuestion,
-            query: { limit: "9" },
-        },
-        {
-            name: "Calculations",
-            url: "#",
-            icon: Code,
             query: { limit: "9" },
         },
         {
             name: "Service Aspects",
             url: "/admin/aspects",
             icon: Activity,
+            query: { limit: "9" },
+        },
+        {
+            name: "Surveys",
+            url: "/admin/research",
+            icon: FlaskConical,
             query: { limit: "9" },
         },
     ],

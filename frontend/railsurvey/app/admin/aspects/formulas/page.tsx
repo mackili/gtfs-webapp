@@ -5,9 +5,6 @@ import { queryServiceAspectTable } from "@/functions/dbQuery";
 import { toNumber } from "@/functions/utils";
 import { headers } from "next/headers";
 import { columns } from "./columns";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-
 export default async function Home({
     searchParams,
 }: {
@@ -33,22 +30,7 @@ export default async function Home({
     return (
         <div className="flex flex-col mx-10">
             <div className="grid w-full my-10">
-                <div className="flex flex-col justify-start content-center flex-wrap md:flex-nowrap md:flex-row w-full md:justify-between items-baseline gap-8">
-                    <div className="w-full flex justify-center md:justify-start">
-                        <H1 text="Service Aspects" />
-                    </div>
-                    <div className="w-full flex justify-center md:justify-end">
-                        <Link href={`/admin/aspects/new`}>
-                            <Button
-                                variant="outline"
-                                className="cursor-pointer right-0"
-                                size="lg"
-                            >
-                                Add
-                            </Button>
-                        </Link>
-                    </div>
-                </div>
+                <H1 text="Service aspects" />
                 <RecordTable
                     data={data}
                     url={headerList.get("x-current-path")}
