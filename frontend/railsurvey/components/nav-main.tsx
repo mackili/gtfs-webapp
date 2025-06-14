@@ -41,7 +41,10 @@ export function NavMain({
                 </SidebarMenu>
                 <SidebarMenu>
                     {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
+                        <SidebarMenuItem
+                            key={item.title}
+                            className="cursor-pointer"
+                        >
                             <Link
                                 href={{ pathname: item.url, query: item.query }}
                             >

@@ -4,6 +4,7 @@ import { Route, Stops } from "@/types/gtfs";
 import {
     ServiceAspect,
     ServiceAspectFormula,
+    Survey,
     SurveyTemplate,
     TemplateSummary,
 } from "@/types/surveys";
@@ -21,7 +22,7 @@ type QueryInput = {
     select?: string;
 };
 
-type QueryResponseItemBase = Stops | Route | TemplateSummary;
+type QueryResponseItemBase = Stops | Route | TemplateSummary | Survey;
 
 export type QueryResponseItem = QueryResponseItemBase & {
     id: string | number;
@@ -211,10 +212,31 @@ export async function queryServiceAspectTable(input: QueryTableInput) {
     return data;
 }
 
+export async function querySurveysTable(input: QueryTableInput) {
+    const queryInput: QueryInput = {
+        table: "survey",
+        fields: "id,surveyTemplateId,isActive,surveyTemplate(title,displayTitle)",
+        order: input.order,
+        offset: input.offset,
+        range: input.range?.toString().replace(",", "-"),
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
+}
+
+export async function querySurveyDetails(surveyId: number | string) {
+    const queryInput: QueryInput = {
+        table: "survey",
+        fields: "id,surveyTemplateId,isActive,timestamp,surveyTemplate(title,displayTitle),surveySubmission(id.count())",
+        query: `id=eq.${surveyId}`,
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
+}
+
 export async function queryServiceAspect(serviceAspectId: number) {
     const queryInput: QueryInput = {
         table: "serviceAspect",
-        // fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat):templateQuestions",
         filter: `id=eq.${serviceAspectId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
@@ -225,7 +247,7 @@ export async function queryServiceAspectFormulaList(serviceAspectId: number) {
     const queryInput: QueryInput = {
         table: "serviceAspectFormula",
         fields: "id,surveyTemplateId,surveyTemplate(id,title,displayTitle,type),weight,formula",
-        query: `serviceAspectId=eq.${serviceAspectId}`,
+        query: `id=eq.${serviceAspectId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     type ServiceAspectFormulaWithTemplate = ServiceAspectFormula & {
@@ -295,6 +317,14 @@ export async function upsertServiceAspectFormula(
     const result = (await upsertDB({
         table: "serviceAspectFormula",
         data: { ...data, formula: encodeBinary(data.formula) },
+    })) as UpsertResponse;
+    return result;
+}
+
+export async function upsertSurvey(data: Survey): Promise<UpsertResponse> {
+    const result = (await upsertDB({
+        table: "survey",
+        data: data,
     })) as UpsertResponse;
     return result;
 }

@@ -70,15 +70,17 @@ export function NavDocuments({
                                         <span>Create</span>
                                     </DropdownMenuItem>
                                 </Link>
-                                <DropdownMenuItem>
-                                    <Search />
-                                    <span>Search</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem variant="destructive">
-                                    <Trash2 />
-                                    <span>Delete</span>
-                                </DropdownMenuItem>
+                                <Link
+                                    href={{
+                                        pathname: `${item.url}`,
+                                        query: item.query,
+                                    }}
+                                >
+                                    <DropdownMenuItem>
+                                        <Search />
+                                        <span>Search</span>
+                                    </DropdownMenuItem>
+                                </Link>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </SidebarMenuItem>

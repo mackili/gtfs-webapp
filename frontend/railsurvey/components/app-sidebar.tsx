@@ -100,7 +100,7 @@ const data = {
             query: { limit: "9" },
         },
         {
-            name: "Surveys",
+            name: "Survey Research",
             url: "/admin/research",
             icon: FlaskConical,
             query: { limit: "9" },

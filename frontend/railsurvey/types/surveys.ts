@@ -104,13 +104,6 @@ export const measuresAspectSchema = z.object({
 
 export type MeasuresAspect = z.infer<typeof measuresAspectSchema>;
 
-export const surveySchema = z.object({
-    id: z.number().int(),
-    surveyTemplateId: z.number().int(),
-});
-
-export type Survey = z.infer<typeof surveySchema>;
-
 export const surveySubmissionSchema = z.object({
     id: z.number().int(),
     surveyId: z.number().int(),
@@ -118,6 +111,23 @@ export const surveySubmissionSchema = z.object({
     ticketHash: z.string().nullish(),
     timestamp: z.date(),
 });
+
+export const surveySchema = z.object({
+    id: z.number().int().optional(),
+    surveyTemplateId: z.number().int(),
+    isActive: z.boolean().default(false),
+    timestamp: z.iso.datetime().optional(),
+    surveySubmission: z
+        .array(
+            z.object({
+                count: z.number().nonnegative().int(),
+            })
+        )
+        .optional(),
+    surveySubmissions: z.array(surveySubmissionSchema).optional(),
+});
+
+export type Survey = z.infer<typeof surveySchema>;
 
 export type SurveySubmission = z.infer<typeof surveySubmissionSchema>;
 
