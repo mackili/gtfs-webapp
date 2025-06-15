@@ -214,6 +214,26 @@ const creatorForm: TemplateSummary = {
             description: "true or false",
         },
         {
+            id: "minValue",
+            text: "Minimum Value",
+            displayOrder: 60,
+            answerFormat: "number",
+            surveyTemplateId: 0,
+            templateSectionId: "templateQuestions",
+            isRequired: false,
+            description: "Only insert if question's answer format is number",
+        },
+        {
+            id: "maxValue",
+            text: "Maximum Value",
+            displayOrder: 70,
+            answerFormat: "number",
+            surveyTemplateId: 0,
+            templateSectionId: "templateQuestions",
+            isRequired: false,
+            description: "Only insert if question's answer format is number",
+        },
+        {
             id: "firstName",
             text: "First Name",
             displayOrder: 0,
@@ -334,6 +354,8 @@ export default function TemplateEditor({
         }
     };
 
+    const form = useForm({ defaultValues: formData || {} });
+
     const handleRemoveItem = (
         sectionId: TemplateSectionId | string,
         elementId: number
@@ -356,9 +378,12 @@ export default function TemplateEditor({
             default:
                 break;
         }
+        form.unregister(
+            Object.keys(form.getValues()).filter((value) =>
+                value.startsWith(`${sectionId}:${elementId}`)
+            )
+        );
     };
-
-    const form = useForm({ defaultValues: formData || {} });
 
     function onsubmit(values: object) {
         const params = new URLSearchParams(

@@ -26,7 +26,9 @@ async def request(endpoint, data, expected_codes: list[int]):
 
 
 async def delete(
-    url: str, table: str, identifiers: dict[str, str | int | list[str | int]]
+    url: str,
+    table: str,
+    identifiers: dict[str, str | int | list[str | int] | list[str]],
 ) -> None:
     endpoint = f"{url}/{table}?"
     for field in identifiers.keys():
@@ -151,9 +153,11 @@ async def UpsertTemplateQuestions(
         if not isinstance(question.templateSectionId, int):
             question.templateSectionId = None
         if question.id == None:
-            questions_insert.append(question.model_dump(exclude_unset=True))
+            questions_insert.append(
+                question.model_dump(exclude_unset=False, exclude={"id"})
+            )
         else:
-            questions_update.append(question.model_dump(exclude_unset=True))
+            questions_update.append(question.model_dump(exclude_unset=False))
     resJson_insert = await request(endpoint, questions_insert, [200, 201])
     resJson_update = await request(endpoint, questions_update, [200, 201])
     return [

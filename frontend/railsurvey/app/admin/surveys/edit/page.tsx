@@ -21,7 +21,6 @@ export default async function Page({
     const submitted = params.isSubmitted;
     if (submitted === "true") {
         const { id, isSubmitted, ...formData } = params;
-        console.log(formData);
         try {
             const res = await upsertSurveyTemplate(
                 // @ts-expect-error those values are unused

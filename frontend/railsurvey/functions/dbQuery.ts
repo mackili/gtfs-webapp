@@ -2,8 +2,10 @@
 import { SummaryData, AgencySummaryView, AgencyStatic } from "@/types/db";
 import { Route, Stops } from "@/types/gtfs";
 import {
+    CompositeSubmission,
     ServiceAspect,
     ServiceAspectFormula,
+    ServiceAspectResult,
     Survey,
     SurveyTemplate,
     TemplateSummary,
@@ -22,7 +24,12 @@ type QueryInput = {
     select?: string;
 };
 
-type QueryResponseItemBase = Stops | Route | TemplateSummary | Survey;
+type QueryResponseItemBase =
+    | Stops
+    | Route
+    | TemplateSummary
+    | Survey
+    | CompositeSubmission;
 
 export type QueryResponseItem = QueryResponseItemBase & {
     id: string | number;
@@ -153,7 +160,7 @@ export async function queryRouteDetails(routeId: string) {
 export async function querySurveyTemplate(surveyTemplateId: number) {
     const queryInput: QueryInput = {
         table: "surveyTemplate",
-        fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSections:templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat,isRequired),serviceAspectFormulas:serviceAspectFormula(id,weight,formula,serviceAspect(id,title))",
+        fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSections:templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat,isRequired,minValue,maxValue),serviceAspectFormulas:serviceAspectFormula(id,weight,formula,serviceAspect(id,title))",
         filter: `id=eq.${surveyTemplateId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
@@ -215,7 +222,7 @@ export async function queryServiceAspectTable(input: QueryTableInput) {
 export async function querySurveysTable(input: QueryTableInput) {
     const queryInput: QueryInput = {
         table: "survey",
-        fields: "id,surveyTemplateId,isActive,surveyTemplate(title,displayTitle)",
+        fields: "id,surveyTemplateId,isActive,timestamp,surveyTemplate(title,displayTitle)",
         order: input.order,
         offset: input.offset,
         range: input.range?.toString().replace(",", "-"),
@@ -224,11 +231,17 @@ export async function querySurveysTable(input: QueryTableInput) {
     return data;
 }
 
-export async function querySurveyDetails(surveyId: number | string) {
+export async function querySurveyDetails({
+    surveyId,
+    surveyUuid,
+}: {
+    surveyId?: number | string;
+    surveyUuid?: string;
+}) {
     const queryInput: QueryInput = {
         table: "survey",
-        fields: "id,surveyTemplateId,isActive,timestamp,surveyTemplate(title,displayTitle),surveySubmission(id.count())",
-        query: `id=eq.${surveyId}`,
+        fields: "id,surveyTemplateId,isActive,timestamp,uuid,surveyTemplate(title,displayTitle),surveySubmission(id.count())",
+        query: surveyUuid ? `uuid=eq.${surveyUuid}` : `id=eq.${surveyId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     return data;
@@ -293,7 +306,6 @@ export async function upsertSurveyTemplate(
     data: TemplateSummary,
     rollback: boolean = true
 ): Promise<UpsertResponse> {
-    console.log(JSON.stringify(data));
     const result = (await upsertDB({
         table: `surveyTemplate/upsert?perform_rollback=${rollback}`,
         data: data,
@@ -353,4 +365,36 @@ export async function deleteDB(input: DeleteInput): Promise<DeleteOutput> {
         },
     });
     return { statusCode: res.status, response: await res.json() };
+}
+
+export async function submitSurvey(
+    data: CompositeSubmission
+): Promise<UpsertResponse> {
+    console.log(JSON.stringify(data));
+    const result = (await upsertDB({
+        table: `submit/${data.surveyId}`,
+        data: data,
+    })) as UpsertResponse;
+    return result;
+}
+
+export async function querySubmissionDetails(uuid: string) {
+    const result = (await queryDB({
+        table: "surveySubmission",
+        query: `uuid=eq.${uuid}`,
+        fields: "id,uuid,timestamp,answers:submittedAnswer(uuid,value,templateQuestion(text,answerFormat))",
+        limit: 1,
+    })) as QueryResponse;
+    return result;
+}
+
+export async function calculateAspectValues(
+    surveyTemplateId: string | number,
+    surveyId: string | number
+) {
+    const endpoint = `${process.env.BACKEND_URL}/surveyTemplate/${surveyTemplateId}/${surveyId}/calculate`;
+    console.log(endpoint);
+    // @ts-expect-error the response format is correct
+    const result = await fetch(endpoint);
+    return result.json();
 }

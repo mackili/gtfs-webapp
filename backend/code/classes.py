@@ -57,8 +57,10 @@ class TemplateQuestion(BaseModel):
     templateSectionId: int | str | None = None
     answerFormat: str
     selectValues: list[str | None] | None = None
-    isRequried: bool = False
-    externalSectionId: Optional[str | int] = None
+    isRequired: bool = False
+    # externalSectionId: Optional[str | int] = None
+    maxValue: int | None = None
+    minValue: int | None = None
 
 
 class TemplateSummary(SurveyTemplate):
@@ -72,19 +74,39 @@ class UpsertInput(RootModel[Dict[Union[str, int], Any]]):
 
 
 class SurveySubmission(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
     surveyId: int
-    tripId: Optional[int]
-    tickerHash: Optional[str]
-    timestamp: Optional[int]
+    tripId: Optional[int] = None
+    ticketHash: Optional[str] = None
+    timestamp: Optional[str] = None
+    uuid: Optional[str] = None
 
 
 class SubmittedAnswer(BaseModel):
-    id: Optional[int]
-    submissionId: int
+    id: Optional[int] = None
+    submissionId: Optional[int] = None
     templateQuestionId: int
     value: str | int | None
+    uuid: Optional[str] = None
 
 
-class SurveySubmissionSummary(SurveySubmission):
+class CompositeSubmission(SurveySubmission):
     answers: List[SubmittedAnswer]
+
+
+class ServiceAspectFormula(BaseModel):
+    id: Optional[int] = None
+    surveyTemplateId: int
+    serviceAspectId: int
+    weight: float
+    formula: str
+    serviceAspectTitle: Optional[str] = None
+
+
+class ServiceAspectResult(BaseModel):
+    formulaId: int | str
+    serviceAspectId: int | str
+    serviceAspectTitle: Optional[str]
+    value: float | str
+    questionIds: List[int | str]
+    calculationTime: int

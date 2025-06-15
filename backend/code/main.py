@@ -8,7 +8,8 @@ import sys
 from pydantic import ValidationError
 import humps
 import tempfile
-import os
+import datetime
+from pydantic_core import from_json
 
 sys.path.insert(1, "GTFSRT")
 from GTFSRT import main_rt as rt
@@ -21,6 +22,8 @@ from Surveys.upsert import (
     UpsertTemplateQuestions,
     rollback,
 )
+from Surveys.delete import handle_delete_difference
+from Surveys.lua import *
 
 app = FastAPI()
 
@@ -28,7 +31,7 @@ BASE_URL = "http://localhost:3000"
 
 
 @app.get("/query")
-def read_query(
+async def read_query(
     table: str,
     fields: None | str = None,
     query: None | str = None,
@@ -130,6 +133,9 @@ async def upsert_template(
     data: TemplateSummary,
     perform_rollback: str = "false",
 ):
+    headers = {
+        "Prefer": "return=representation",
+    }
     try:
         template: SurveyTemplate = await UpsertSurveyTemplate(data, BASE_URL)
         result: TemplateSummary = TemplateSummary(
@@ -144,8 +150,22 @@ async def upsert_template(
         result.templateSections = await UpsertTemplateSection(
             data, BASE_URL, template.id
         )
+        result.templateSections = await handle_delete_difference(
+            result.templateSections,
+            "templateSection",
+            BASE_URL,
+            headers,
+            parent_id_filter=f"surveyTemplateId=eq.{result.id}",
+        )
         result.templateQuestions = await UpsertTemplateQuestions(
             data, BASE_URL, template.id
+        )
+        await handle_delete_difference(
+            result.templateQuestions,
+            "templateQuestion",
+            BASE_URL,
+            headers,
+            parent_id_filter=f"surveyTemplateId=eq.{result.id}",
         )
         return result
     except HTTPException as e:
@@ -173,3 +193,98 @@ async def delete_table(
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     return resJson
+
+
+@app.post("/submit/{surveyId}")
+async def upsert_submission(surveyId: str, data: CompositeSubmission):
+    endpoint_submission = BASE_URL + "/" + humps.decamelize("surveySubmission")
+    endpoint_answers = BASE_URL + "/" + humps.decamelize("submittedAnswer")
+    headers = {
+        "Prefer": "resolution=merge-duplicates,return=representation",
+    }
+    try:
+        res_submission = requests.post(
+            endpoint_submission,
+            headers=headers,
+            json=humps.decamelize(
+                (SurveySubmission(**data.model_dump(exclude_unset=True))).model_dump(
+                    exclude_unset=True
+                )
+            ),
+        )
+        submission = SurveySubmission.model_validate(
+            humps.camelize(res_submission.json()[0])
+        )
+        answers_data = data.answers
+        for answer in answers_data:
+            answer.submissionId = submission.id
+        # return submission
+        res_answers = requests.post(
+            endpoint_answers,
+            headers=headers,
+            json=humps.decamelize(
+                [answer.model_dump(exclude_unset=True) for answer in answers_data]
+            ),
+        )
+        # return humps.camelize(res_answers.json())
+        answers = []
+        for a in humps.camelize(res_answers.json()):
+            answer = SubmittedAnswer(**a)
+            answers.append(a)
+        return_data = CompositeSubmission(**submission.model_dump(), answers=answers)
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    return return_data
+
+
+@app.get("/surveyTemplate/{surveyTemplateId}/{surveyId}/calculate")
+async def calculate_aspect_values(surveyTemplateId: str | int, surveyId: str | int):
+    aspects = await read_query(
+        "serviceAspectFormula",
+        query=f"surveyTemplateId=eq.{surveyTemplateId}",
+        fields="*,serviceAspect(title)",
+    )
+    formulas: list[ServiceAspectFormula] = []
+    question_ids: set[str] = set([])
+    for item in aspects["items"]:
+        aspectFormula = ServiceAspectFormula(
+            **item, serviceAspectTitle=item["serviceAspect"]["title"]
+        )
+        aspectFormula.formula = bytes.fromhex(aspectFormula.formula).decode("utf-8")
+        formulas.append(aspectFormula)
+        question_ids = question_ids.union(extract_question_ids(aspectFormula.formula))
+    question_answers = await read_query(
+        "submittedAnswer",
+        fields="id,templateQuestionId::int,value::real,templateQuestion!inner(answerFormat),surveySubmission!inner(surveyId)",
+        query=f"templateQuestionId=in.({','.join(list(question_ids))})&templateQuestion.answerFormat=eq.number&surveySubmission.surveyId=eq.{surveyId}",
+    )
+    answers: list[SubmittedAnswer] = []
+    for answer in question_answers["items"]:
+        answers.append(SubmittedAnswer(**answer))
+    results: list[ServiceAspectResult] = []
+    for formula in formulas:
+        time_start = datetime.datetime.now()
+        question_dict = create_answer_list_dict(answers)
+        value = None
+        try:
+            value = evaluate(formula.formula, question_dict)
+        except Exception as e:
+            value = f"Error: {e}"
+        finally:
+            time_elapsed = datetime.datetime.now() - time_start
+        results.append(
+            ServiceAspectResult(
+                formulaId=formula.id,
+                serviceAspectId=formula.serviceAspectId,
+                serviceAspectTitle=formula.serviceAspectTitle,
+                value=value,
+                questionIds=question_dict.keys(),
+                calculationTime=time_elapsed.microseconds,
+            )
+        )
+    return {
+        "totalSize": len(results),
+        "itemsStart": 0,
+        "itemsEnd": len(results),
+        "items": results,
+    }

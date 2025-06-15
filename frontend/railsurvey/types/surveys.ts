@@ -76,6 +76,8 @@ export const templateQuestionSchema = z.object({
     selectValues: z.array(z.string()).nullish(),
     isRequired: z.boolean().default(false),
     externalSectionId: z.union([z.int(), z.string()]).nullish(),
+    maxValue: z.int().optional(),
+    minValue: z.int().optional(),
 });
 
 export type TemplateQuestion = z.infer<typeof templateQuestionSchema>;
@@ -105,11 +107,12 @@ export const measuresAspectSchema = z.object({
 export type MeasuresAspect = z.infer<typeof measuresAspectSchema>;
 
 export const surveySubmissionSchema = z.object({
-    id: z.number().int(),
+    id: z.number().int().optional(),
     surveyId: z.number().int(),
     tripId: z.string().nullish(),
     ticketHash: z.string().nullish(),
     timestamp: z.date(),
+    uuid: z.uuid().optional(),
 });
 
 export const surveySchema = z.object({
@@ -125,6 +128,7 @@ export const surveySchema = z.object({
         )
         .optional(),
     surveySubmissions: z.array(surveySubmissionSchema).optional(),
+    uuid: z.uuid().optional(),
 });
 
 export type Survey = z.infer<typeof surveySchema>;
@@ -132,13 +136,19 @@ export type Survey = z.infer<typeof surveySchema>;
 export type SurveySubmission = z.infer<typeof surveySubmissionSchema>;
 
 export const submittedAnswerSchema = z.object({
-    id: z.number().int(),
-    submissionId: z.number().int(),
+    id: z.number().int().optional(),
+    submissionId: z.number().int().optional(),
     templateQuestionId: z.number().int(),
     value: z.string(),
+    templateQuestion: templateQuestionSchema.optional(),
+    uuid: z.uuid().optional(),
 });
 
 export type SubmittedAnswer = z.infer<typeof submittedAnswerSchema>;
+
+export type CompositeSubmission = SurveySubmission & {
+    answers: SubmittedAnswer[];
+};
 
 export type ServiceAspectFormulaWithAspect = ServiceAspectFormula & {
     serviceAspect: ServiceAspect;
@@ -153,3 +163,14 @@ export interface TemplateSummary extends SurveyTemplate {
 export interface SummarySection extends TemplateSection {
     hasRepeater: boolean;
 }
+
+export const serviceAspectResultSchema = z.object({
+    formulaId: z.union([z.string(), z.int()]),
+    serviceAspectId: z.union([z.string(), z.int()]),
+    serviceAspectTitle: z.string().optional(),
+    value: z.union([z.string(), z.number()]),
+    questionIds: z.array(z.union([z.string(), z.int()])),
+    calculationTime: z.int(),
+});
+
+export type ServiceAspectResult = z.infer<typeof serviceAspectResultSchema>;

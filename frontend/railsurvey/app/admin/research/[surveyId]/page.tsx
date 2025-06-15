@@ -1,27 +1,39 @@
-import { H1, H2, H3 } from "@/components/ui/typography";
-import { querySurveyDetails, querySurveyTemplate } from "@/functions/dbQuery";
-import { Survey, TemplateSummary } from "@/types/surveys";
+import { H1, H2 } from "@/components/ui/typography";
+import {
+    calculateAspectValues,
+    querySurveyDetails,
+    querySurveyTemplate,
+} from "@/functions/dbQuery";
+import { ServiceAspectResult, Survey, TemplateSummary } from "@/types/surveys";
 import { InfocardsMap } from "@/components/infocards-map";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { headers } from "next/headers";
 import { surveyDetailKeys } from "../../surveys/[surveyTemplateId]/page";
 
-export const surveyKeys = ["id", "isActive", "timestamp", "answerCount"];
+export const surveyKeys = [
+    "id",
+    "isActive",
+    "timestamp",
+    "answerCount",
+    "uuid",
+];
 
 export default async function Home({
     params,
 }: {
     params: Promise<{ surveyId: number }>;
 }) {
-    const currentPath = (await headers()).get("x-current-path");
     const { surveyId } = await params;
-    const surveyData: Survey = (await querySurveyDetails(surveyId))
-        .items[0] as Survey;
+    const surveyData: Survey = (
+        await querySurveyDetails({ surveyId: surveyId })
+    ).items[0] as Survey;
     const templateData: TemplateSummary = await querySurveyTemplate(
         surveyData.surveyTemplateId
     );
-    console.log(surveyData);
+    const results = (
+        await calculateAspectValues(surveyData.surveyTemplateId, surveyId)
+    ).items as ServiceAspectResult[];
+    console.log(JSON.stringify(results));
     return (
         <div className="flex flex-col mx-10">
             <div className="flex flex-col justify-start content-center flex-wrap md:flex-nowrap md:flex-row w-full md:justify-between items-center gap-8 my-10">
@@ -37,7 +49,16 @@ export default async function Home({
                         className="pb-0"
                     />
                 </div>
-                <div className="flex justify-center md:justify-end shrink">
+                <div className="flex justify-center md:justify-end shrink gap-4">
+                    <Link target="_blank" href={`/response/${surveyData.uuid}`}>
+                        <Button
+                            variant="outline"
+                            className="cursor-pointer right-0"
+                            size="lg"
+                        >
+                            Link to
+                        </Button>
+                    </Link>
                     <Link href={`/admin/research/edit?id=${surveyData.id}`}>
                         <Button
                             variant="outline"
@@ -64,6 +85,7 @@ export default async function Home({
                             surveyData.surveySubmission[0]
                                 ? String(surveyData.surveySubmission[0].count)
                                 : undefined,
+                        uuid: surveyData.uuid,
                     }}
                     keysFilter={surveyKeys}
                     className="md:col-span-2"
@@ -81,6 +103,24 @@ export default async function Home({
                         className="md:col-span-2"
                     />
                 </Link>
+            </div>
+            <div className="grid md:grid-cols-2 w-full my-4 gap-4">
+                {results.map((result) => (
+                    <InfocardsMap
+                        key={result.formulaId}
+                        title={result.serviceAspectTitle}
+                        data={result}
+                        contentOverride={
+                            <H2
+                                text={
+                                    typeof result.value === "number"
+                                        ? result.value.toFixed(1)
+                                        : result.value
+                                }
+                            />
+                        }
+                    />
+                ))}
             </div>
         </div>
     );
