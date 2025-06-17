@@ -14,10 +14,21 @@ async def importGTFS(
     data = unzip(binary_data=binary)
     data = validate(data, include_shapes)
 
+    # return data.get("stops.txt").to_json(orient="records")
+    # return data.get("stop_times.txt").to_json(orient="records")
+
     insert("calendar", data.get("calendar.txt"), batch_size)
     insert("calendar_dates", data.get("calendar_dates.txt"), batch_size)
     insert("agency", data.get("agency.txt"), batch_size)
-    insert("stops", data.get("stops.txt"), batch_size)
+    parent_stops = data.get("stops.txt").query(
+        "parent_station.isnull()", engine="python"
+    )
+    child_stops = data.get("stops.txt").query(
+        "parent_station.notnull()", engine="python"
+    )
+    # return child_stops.to_json(orient="records")
+    insert("stops", parent_stops, batch_size)
+    insert("stops", child_stops, batch_size)
     insert("routes", data.get("routes.txt"), batch_size)
     if include_shapes:
         insert("shapes", data.get("shapes.txt"), batch_size)

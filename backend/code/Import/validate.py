@@ -39,6 +39,13 @@ def validate_stops(dataframes: dict[str, pd.DataFrame]) -> dict[str, pd.DataFram
     stops.drop(["stop_lat", "stop_lon"], axis=1, inplace=True)
 
     stops.stop_id = stops.stop_id.astype(str)
+    stops["parent_station"] = stops["parent_station"].apply(
+        lambda x: (
+            str(int(x))
+            if pd.notna(x) and float(x).is_integer()
+            else (str(x) if pd.notna(x) else x)
+        )
+    )
     if "parent_station" in stops.columns:
         dataframes["stops.txt"] = stops.sort_values(
             "parent_station", na_position="first"

@@ -5,7 +5,7 @@ import subprocess
 import simplejson as json
 from classes import *
 import sys
-from pydantic import ValidationError
+from pydantic import ValidationError, PydanticUserError
 import humps
 import tempfile
 import datetime
@@ -107,7 +107,7 @@ async def post_gtfs(file: UploadFile):
             status_code=400, detail="Invalid data type. Only application/zip accepted"
         )
     file_content: bytes = await file.read()
-    await importGTFS(file_content)
+    await importGTFS(file_content, 5, True)
 
     return {"filename": file.filename}
 
@@ -238,7 +238,12 @@ async def upsert_submission(surveyId: str, data: CompositeSubmission):
 
 
 @app.get("/surveyTemplate/{surveyTemplateId}/{surveyId}/calculate")
-async def calculate_aspect_values(surveyTemplateId: str | int, surveyId: str | int):
+async def calculate_aspect_values(
+    surveyTemplateId: str | int,
+    surveyId: str | int,
+    tripId: Optional[str | int] = None,
+    routeId: Optional[str | int] = None,
+) -> ServiceAspectReadResult | ServiceAspectResultError:
     aspects = await read_query(
         "serviceAspectFormula",
         query=f"surveyTemplateId=eq.{surveyTemplateId}",
@@ -247,20 +252,31 @@ async def calculate_aspect_values(surveyTemplateId: str | int, surveyId: str | i
     formulas: list[ServiceAspectFormula] = []
     question_ids: set[str] = set([])
     for item in aspects["items"]:
-        aspectFormula = ServiceAspectFormula(
-            **item, serviceAspectTitle=item["serviceAspect"]["title"]
-        )
+        try:
+            aspectFormula = ServiceAspectFormula(
+                **item, serviceAspectTitle=item["serviceAspect"]["title"]
+            )
+        except ValidationError as e:
+            return ServiceAspectResultError(errorMessage=str(e), errorDetails=e.json())
         aspectFormula.formula = bytes.fromhex(aspectFormula.formula).decode("utf-8")
         formulas.append(aspectFormula)
         question_ids = question_ids.union(extract_question_ids(aspectFormula.formula))
     question_answers = await read_query(
         "submittedAnswer",
         fields="id,templateQuestionId::int,value::real,templateQuestion!inner(answerFormat),surveySubmission!inner(surveyId)",
-        query=f"templateQuestionId=in.({','.join(list(question_ids))})&templateQuestion.answerFormat=eq.number&surveySubmission.surveyId=eq.{surveyId}",
+        query=f"templateQuestionId=in.({','.join(list(question_ids))})&templateQuestion.answerFormat=eq.number&surveySubmission.surveyId=eq.{surveyId}"
+        + (f"&surveySubmission.tripId=eq.{tripId}" if tripId is not None else "")
+        + (f"&surveySubmission.routeId=eq.{routeId}" if routeId is not None else ""),
     )
     answers: list[SubmittedAnswer] = []
     for answer in question_answers["items"]:
-        answers.append(SubmittedAnswer(**answer))
+        try:
+            parsed_answer = SubmittedAnswer(**answer)
+            answers.append(parsed_answer)
+        except ValidationError as e:
+            return ServiceAspectResultError(errorMessage=str(e), errorDetails=e.json())
+        except Exception as e:
+            return ServiceAspectResultError(errorMessage=str(e))
     results: list[ServiceAspectResult] = []
     for formula in formulas:
         time_start = datetime.datetime.now()
@@ -269,7 +285,7 @@ async def calculate_aspect_values(surveyTemplateId: str | int, surveyId: str | i
         try:
             value = evaluate(formula.formula, question_dict)
         except Exception as e:
-            value = f"Error: {e}"
+            value = ServiceAspectResultError(errorMessage=str(e))
         finally:
             time_elapsed = datetime.datetime.now() - time_start
         results.append(
@@ -282,9 +298,10 @@ async def calculate_aspect_values(surveyTemplateId: str | int, surveyId: str | i
                 calculationTime=time_elapsed.microseconds,
             )
         )
-    return {
-        "totalSize": len(results),
-        "itemsStart": 0,
-        "itemsEnd": len(results),
-        "items": results,
-    }
+    try:
+        final = ServiceAspectReadResult(
+            totalSize=len(results), itemsStart=0, itemsEnd=len(results), items=results
+        )
+    except ValidationError as e:
+        return ServiceAspectResultError(errorMessage=str(e), errorDetails=e.json())
+    return final

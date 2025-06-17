@@ -34,8 +34,11 @@ export default async function Home({
     const templateData: TemplateSummary = await querySurveyTemplate(
         surveyTemplateId
     );
-    const surveyData: Survey[] = (await querySurveysTable({}))
-        .items as Survey[];
+    const surveyData: Survey[] = (
+        await querySurveysTable({
+            query: `surveyTemplateId=eq.${surveyTemplateId}`,
+        })
+    ).items as Survey[];
     return (
         <div className="flex flex-col mx-10">
             <div className="flex flex-col justify-start content-center flex-wrap md:flex-nowrap md:flex-row w-full md:justify-between items-center gap-8 my-10">
@@ -82,7 +85,6 @@ export default async function Home({
                                     <InfocardsMap
                                         key={index}
                                         title={question.text}
-                                        // @ts-expect-error its fine
                                         data={question}
                                         keysFilter={surveyTemplateQuestionKeys}
                                     />

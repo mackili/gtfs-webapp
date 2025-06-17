@@ -109,6 +109,7 @@ export type MeasuresAspect = z.infer<typeof measuresAspectSchema>;
 export const surveySubmissionSchema = z.object({
     id: z.number().int().optional(),
     surveyId: z.number().int(),
+    routeId: z.string().nullish(),
     tripId: z.string().nullish(),
     ticketHash: z.string().nullish(),
     timestamp: z.date(),
@@ -164,11 +165,16 @@ export interface SummarySection extends TemplateSection {
     hasRepeater: boolean;
 }
 
+export const serviceAspectResultError = z.object({
+    errorMessage: z.string(),
+    errorDetails: z.object().optional(),
+});
+
 export const serviceAspectResultSchema = z.object({
     formulaId: z.union([z.string(), z.int()]),
     serviceAspectId: z.union([z.string(), z.int()]),
     serviceAspectTitle: z.string().optional(),
-    value: z.union([z.string(), z.number()]),
+    value: z.union([z.string(), z.number(), serviceAspectResultError]),
     questionIds: z.array(z.union([z.string(), z.int()])),
     calculationTime: z.int(),
 });

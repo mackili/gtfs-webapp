@@ -15,15 +15,20 @@ export function InfocardsMap({
     editPath,
     deletePath,
     contentOverride,
+    columns = 1,
 }: {
     title?: string;
     titleFormat?: "H1" | "H2" | "H3" | "H4" | "P";
-    data: Record<string, string | number | boolean | undefined | null | []>;
+    data: Record<
+        string,
+        string | number | boolean | undefined | null | [] | (string | number)[]
+    >;
     keysFilter?: string[];
     className?: string;
     editPath?: UrlObject;
     deletePath?: { pathname: string; query: Record<string, string> };
     contentOverride?: ReactElement;
+    columns?: number;
 }) {
     return (
         <div
@@ -103,7 +108,8 @@ export function InfocardsMap({
             {contentOverride ? (
                 contentOverride
             ) : (
-                <div className="gap-1 flex flex-col">
+                <div className={`grid md:grid-cols-${columns}`}>
+                    {/* <div className="gap-1 flex flex-col"> */}
                     {Object.keys(data)
                         .filter((key) =>
                             keysFilter ? keysFilter.includes(key) : true
@@ -120,6 +126,7 @@ export function InfocardsMap({
                                 />
                             </div>
                         ))}
+                    {/* </div> */}
                 </div>
             )}
         </div>

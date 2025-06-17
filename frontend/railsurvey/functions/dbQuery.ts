@@ -1,6 +1,6 @@
 "use server";
 import { SummaryData, AgencySummaryView, AgencyStatic } from "@/types/db";
-import { Route, Stops } from "@/types/gtfs";
+import { Route, Stops, TripDetailsView, RouteDetailsView } from "@/types/gtfs";
 import {
     CompositeSubmission,
     ServiceAspect,
@@ -29,7 +29,9 @@ type QueryResponseItemBase =
     | Route
     | TemplateSummary
     | Survey
-    | CompositeSubmission;
+    | CompositeSubmission
+    | TripDetailsView
+    | RouteDetailsView;
 
 export type QueryResponseItem = QueryResponseItemBase & {
     id: string | number;
@@ -128,6 +130,8 @@ type QueryTableInput = {
     offset?: number | undefined;
     order?: string | undefined;
     range?: [number, number];
+    filter?: string;
+    query?: string;
 };
 
 export async function queryStationsTable(input: QueryTableInput) {
@@ -150,7 +154,7 @@ export async function queryStationsTable(input: QueryTableInput) {
 export async function queryRouteDetails(routeId: string) {
     const queryInput: QueryInput = {
         table: "routes",
-        fields: "routeId,routeType,agencyId,routeShortName,routeLongName,routeUrl,routeDesc",
+        fields: "routeId,routeType,agencyId,routeShortName,routeLongName,routeUrl,routeDesc,routeColor,agency(agencyName)",
         filter: `route_id=eq.${routeId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
@@ -182,7 +186,6 @@ export async function queryRoutesTable(input: QueryTableInput) {
         range: input.range?.toString().replace(",", "-"),
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
-    console.log(JSON.stringify(data));
     const itemsUpdated = (data.items as Route[]).map((item) => {
         item.routeShortName =
             item.routeShortName ||
@@ -207,6 +210,18 @@ export async function queryTemplatesTable(input: QueryTableInput) {
     return data;
 }
 
+export async function queryTripsTable(input: QueryTableInput) {
+    const queryInput: QueryInput = {
+        table: "trips",
+        fields: "tripId,id:tripId,routes(routeId,routeShortName,routeLongName),tripHeadsign",
+        order: input.order,
+        offset: input.offset,
+        range: input.range?.toString().replace(",", "-"),
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
+}
+
 export async function queryServiceAspectTable(input: QueryTableInput) {
     const queryInput: QueryInput = {
         table: "serviceAspect",
@@ -219,13 +234,35 @@ export async function queryServiceAspectTable(input: QueryTableInput) {
     return data;
 }
 
+export async function queryTripDetails(tripId: string) {
+    const queryInput: QueryInput = {
+        table: "trips",
+        fields: "tripId,tripHeadsign,tripShortName,directionId,blockId,shapeId,wheelchairAccessible,bikesAllowed,calendar(*,calendarDates(*)),routeId",
+        query: `tripId=eq.${tripId}`,
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
+}
+
+export async function queryStopTimesForTrip(tripId: string) {
+    const queryInput: QueryInput = {
+        table: "stopTimes",
+        fields: "stopSequence,arrivalTime,departureTime,arrivalTimeAddDays,departureTimeAddDays,stopHeadsign,shapeDistTraveled,stops(stopId,stopName,stopCode,locationType,stopDesc,wheelchairBoarding,stopUrl,platformCode,stopLatLon,parentStation(stopId,stopName,stopCode,locationType,stopUrl,stopDesc,wheelchairBoarding,stopLatLon))",
+        query: `tripId=eq.${tripId}`,
+        order: "stopSequence.asc",
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
+}
+
 export async function querySurveysTable(input: QueryTableInput) {
     const queryInput: QueryInput = {
         table: "survey",
-        fields: "id,surveyTemplateId,isActive,timestamp,surveyTemplate(title,displayTitle)",
+        fields: "id,surveyTemplateId,isActive,uuid,timestamp,surveyTemplate(title,displayTitle)",
         order: input.order,
         offset: input.offset,
         range: input.range?.toString().replace(",", "-"),
+        query: input.query,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     return data;
@@ -260,7 +297,7 @@ export async function queryServiceAspectFormulaList(serviceAspectId: number) {
     const queryInput: QueryInput = {
         table: "serviceAspectFormula",
         fields: "id,surveyTemplateId,surveyTemplate(id,title,displayTitle,type),weight,formula",
-        query: `id=eq.${serviceAspectId}`,
+        query: `serviceAspectId=eq.${serviceAspectId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     type ServiceAspectFormulaWithTemplate = ServiceAspectFormula & {
@@ -388,13 +425,24 @@ export async function querySubmissionDetails(uuid: string) {
     return result;
 }
 
-export async function calculateAspectValues(
-    surveyTemplateId: string | number,
-    surveyId: string | number
-) {
-    const endpoint = `${process.env.BACKEND_URL}/surveyTemplate/${surveyTemplateId}/${surveyId}/calculate`;
-    console.log(endpoint);
-    // @ts-expect-error the response format is correct
+export async function calculateAspectValues({
+    surveyTemplateId,
+    surveyId,
+    routeId,
+    tripId,
+}: {
+    surveyTemplateId: string | number;
+    surveyId: string | number;
+    routeId?: string | number;
+    tripId?: string | number;
+}) {
+    let endpoint = `${process.env.BACKEND_URL}/surveyTemplate/${surveyTemplateId}/${surveyId}/calculate?`;
+    if (routeId) {
+        endpoint += `routeId=${routeId}`;
+    }
+    if (tripId) {
+        endpoint += `tripId=${tripId}`;
+    }
     const result = await fetch(endpoint);
     return result.json();
 }

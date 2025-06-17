@@ -9,6 +9,13 @@ import { InfocardsMap } from "@/components/infocards-map";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { surveyDetailKeys } from "../../surveys/[surveyTemplateId]/page";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { AlertTriangle } from "lucide-react";
+import RouteTypeIcon from "../../routes/[routeId]/route-type-icon";
 
 export const surveyKeys = [
     "id",
@@ -31,7 +38,10 @@ export default async function Home({
         surveyData.surveyTemplateId
     );
     const results = (
-        await calculateAspectValues(surveyData.surveyTemplateId, surveyId)
+        await calculateAspectValues({
+            surveyTemplateId: surveyData.surveyTemplateId,
+            surveyId: surveyId,
+        })
     ).items as ServiceAspectResult[];
     console.log(JSON.stringify(results));
     return (
@@ -111,13 +121,25 @@ export default async function Home({
                         title={result.serviceAspectTitle}
                         data={result}
                         contentOverride={
-                            <H2
-                                text={
-                                    typeof result.value === "number"
-                                        ? result.value.toFixed(1)
-                                        : result.value
-                                }
-                            />
+                            typeof result.value === "string" ||
+                            typeof result.value === "number" ? (
+                                <H2
+                                    text={
+                                        typeof result.value === "number"
+                                            ? result.value.toString()
+                                            : result.value
+                                    }
+                                />
+                            ) : (
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <AlertTriangle className="stroke-orange-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {`Error: ${result.value.errorMessage}`}
+                                    </TooltipContent>
+                                </Tooltip>
+                            )
                         }
                     />
                 ))}

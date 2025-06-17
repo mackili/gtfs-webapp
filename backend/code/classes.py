@@ -76,7 +76,8 @@ class UpsertInput(RootModel[Dict[Union[str, int], Any]]):
 class SurveySubmission(BaseModel):
     id: Optional[int] = None
     surveyId: int
-    tripId: Optional[int] = None
+    routeId: Optional[int | str] = None
+    tripId: Optional[int | str] = None
     ticketHash: Optional[str] = None
     timestamp: Optional[str] = None
     uuid: Optional[str] = None
@@ -103,10 +104,26 @@ class ServiceAspectFormula(BaseModel):
     serviceAspectTitle: Optional[str] = None
 
 
+class ServiceAspectResultError(BaseModel):
+    errorMessage: str
+    errorDetails: Optional[object] = None
+
+
 class ServiceAspectResult(BaseModel):
     formulaId: int | str
     serviceAspectId: int | str
     serviceAspectTitle: Optional[str]
-    value: float | str
+    value: float | str | None | ServiceAspectResultError
     questionIds: List[int | str]
     calculationTime: int
+
+
+class QueryResult(BaseModel):
+    totalSize: int
+    itemsStart: int
+    itemsEnd: int
+    items: List[Any]
+
+
+class ServiceAspectReadResult(QueryResult):
+    items: List[ServiceAspectResult]

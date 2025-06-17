@@ -1,11 +1,10 @@
 "use server";
 import { H1 } from "@/components/ui/typography";
-import { headers } from "next/headers";
-import { toNumber } from "@/functions/utils";
-import { queryRoutesTable } from "@/functions/dbQuery";
 import RecordTable from "@/components/records-table";
+import { queryTripsTable } from "@/functions/dbQuery";
+import { toNumber } from "@/functions/utils";
+import { headers } from "next/headers";
 import { columns } from "./columns";
-
 export default async function Home({
     searchParams,
 }: {
@@ -22,20 +21,21 @@ export default async function Home({
     const numLimit = toNumber(limit, 1);
 
     const range: [number, number] = [numRangeFrom, numRangeTo + numLimit - 1];
-    const data = await queryRoutesTable({
-        order: "routeId.asc",
+
+    const data = await queryTripsTable({
+        order: "tripId.asc",
         limit: numLimit,
         range: range,
     });
     return (
         <div className="flex flex-col mx-10">
             <div className="grid w-full my-10">
-                <H1 text="Routes" />
+                <H1 text="Trips" />
                 <RecordTable
                     data={data}
                     url={headerList.get("x-current-path")}
                     columns={columns}
-                    objectName="routes"
+                    objectName="trips"
                 />
             </div>
         </div>

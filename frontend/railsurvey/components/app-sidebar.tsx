@@ -60,13 +60,9 @@ const data = {
         },
         {
             title: "Trips",
-            url: "",
+            url: "/admin/trips",
             icon: CalendarCheck,
-        },
-        {
-            title: "Vehicles",
-            url: "",
-            icon: TrainFront,
+            query: { limit: "9" },
         },
     ],
     navSecondary: [

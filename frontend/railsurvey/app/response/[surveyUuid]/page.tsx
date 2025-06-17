@@ -50,6 +50,7 @@ export default async function Survey({
             id: submission ? submission.id : undefined,
             // @ts-expect-error this will be always specified, not null
             surveyId: surveyMeta.id,
+            routeId: query.routeId?.toString(),
             tripId: query.tripId?.toString(),
             ticketHash: query.ticketHash?.toString(),
             answers: answers,
