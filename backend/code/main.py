@@ -237,12 +237,11 @@ async def upsert_submission(surveyId: str, data: CompositeSubmission):
     return return_data
 
 
-@app.get("/surveyTemplate/{surveyTemplateId}/{surveyId}/calculate")
+@app.post("/surveyTemplate/{surveyTemplateId}/{surveyId}/calculate")
 async def calculate_aspect_values(
     surveyTemplateId: str | int,
     surveyId: str | int,
-    tripId: Optional[str | int] = None,
-    routeId: Optional[str | int] = None,
+    body: Optional[ServiceAspectCalculationInputBody] = None,
 ) -> ServiceAspectReadResult | ServiceAspectResultError:
     aspects = await read_query(
         "serviceAspectFormula",
@@ -265,8 +264,16 @@ async def calculate_aspect_values(
         "submittedAnswer",
         fields="id,templateQuestionId::int,value::real,templateQuestion!inner(answerFormat),surveySubmission!inner(surveyId)",
         query=f"templateQuestionId=in.({','.join(list(question_ids))})&templateQuestion.answerFormat=eq.number&surveySubmission.surveyId=eq.{surveyId}"
-        + (f"&surveySubmission.tripId=eq.{tripId}" if tripId is not None else "")
-        + (f"&surveySubmission.routeId=eq.{routeId}" if routeId is not None else ""),
+        + (
+            f"&surveySubmission.tripId=in.({','.join(body.tripId)})"
+            if body is not None and body.tripId is not None
+            else ""
+        )
+        + (
+            f"&surveySubmission.routeId=in.({','.join(body.routeId)})"
+            if body is not None and body.routeId is not None
+            else ""
+        ),
     )
     answers: list[SubmittedAnswer] = []
     for answer in question_answers["items"]:

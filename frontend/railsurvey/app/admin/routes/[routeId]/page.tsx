@@ -53,7 +53,7 @@ export default async function Home({
                           typeof query.surveyId !== "string"
                               ? query.surveyId.toString()
                               : query.surveyId,
-                      routeId: routeId,
+                      routeId: [routeId],
                   })
               ).items
             : [];

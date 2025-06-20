@@ -170,3 +170,49 @@ export const stopTimesSchema = z.object({
 });
 
 export type StopTimes = z.infer<typeof stopTimesSchema>;
+
+export const stationDetailsSchema = z.object({
+    stopId: z.string().max(255),
+    stopCode: z.string().max(255).nullable(),
+    stopName: z.string(),
+    stopDesc: z.string().nullable(),
+    stopLatLon: z.string().nullable(),
+    stopUrl: z.url().nullable(),
+    locationType: z.number().nullable(),
+    wheelchairBoarding: z.number().nullable(),
+    childStations: z.array(
+        z.object({
+            stopId: z.string().max(255),
+            locationType: z.number().nullable(),
+            platformCode: z.string().nullable(),
+            stopTimes: z.array(
+                z.object({
+                    routeId: z.string(),
+                    tripId: z.string(),
+                    routeColor: z.string().nullable(),
+                    arrivalTime: z.iso.time(),
+                    departureTime: z.iso.time(),
+                    tripHeadsign: z.string().nullable(),
+                    routeLongName: z.string().nullable(),
+                    tripShortName: z.string().nullable(),
+                    routeShortName: z.string().nullable(),
+                })
+            ),
+        })
+    ),
+    stopTimes: z.array(
+        z.object({
+            routeId: z.string(),
+            tripId: z.string(),
+            routeColor: z.string().nullable(),
+            arrivalTime: z.iso.time(),
+            departureTime: z.iso.time(),
+            tripHeadsign: z.string().nullable(),
+            routeLongName: z.string().nullable(),
+            tripShortName: z.string().nullable(),
+            routeShortName: z.string().nullable(),
+        })
+    ),
+});
+
+export type StationDetails = z.infer<typeof stationDetailsSchema>;

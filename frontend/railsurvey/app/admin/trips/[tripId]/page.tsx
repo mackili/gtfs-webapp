@@ -24,10 +24,10 @@ import { InfocardsMap } from "@/components/infocards-map";
 import SelectToPath from "@/components/select-to-query";
 import { ServiceAspectResult, Survey, SurveyTemplate } from "@/types/surveys";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle } from "lucide-react";
 import RouteDetails from "../../routes/[routeId]/route-details";
 import RouteTypeIcon from "../../routes/[routeId]/route-type-icon";
 import RouteColorDot from "../../routes/[routeId]/route-color";
+import AspectValueDisplay from "@/components/aspect-value-display";
 
 export default async function Home({
     params,
@@ -69,7 +69,7 @@ export default async function Home({
                           typeof query.surveyId !== "string"
                               ? query.surveyId.toString()
                               : query.surveyId,
-                      tripId: tripId,
+                      tripId: [tripId],
                   })
               ).items
             : [];
@@ -172,26 +172,9 @@ export default async function Home({
                                         title={aspect.serviceAspectTitle}
                                         data={{}}
                                         contentOverride={
-                                            typeof aspect.value === "string" ||
-                                            typeof aspect.value === "number" ? (
-                                                <H2
-                                                    text={
-                                                        typeof aspect.value ===
-                                                        "number"
-                                                            ? aspect.value.toString()
-                                                            : aspect.value
-                                                    }
-                                                />
-                                            ) : (
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                        <AlertTriangle className="stroke-orange-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        {`Error: ${aspect.value.errorMessage}`}
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )
+                                            <AspectValueDisplay
+                                                aspect={aspect}
+                                            />
                                         }
                                     />
                                 ))}
@@ -200,43 +183,43 @@ export default async function Home({
                     </div>
                 </div>
                 <div className="md:col-span-2 gap-2 flex flex-col">
-                    {stopTimes.map((halt, index) => (
-                        <div key={index} className="">
-                            <div className="w-1"></div>
-                            <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-row flex-nowrap items-center gap-2 border bg-background shadow-xs">
-                                <div
-                                    className={twMerge(
-                                        "border-solid h-8 w-8 border-primary border-2 rounded-full flex-none flex items-center justify-center",
-                                        (halt.stopSequence === 0 ||
-                                            halt.stopSequence ===
-                                                stopTimes.length - 1) &&
-                                            "bg-primary"
-                                    )}
-                                >
-                                    <P
+                    {stopTimes
+                        .sort((a, b) => a.stopSequence - b.stopSequence)
+                        .map((halt, index) => (
+                            <div key={index} className="">
+                                <div className="w-1"></div>
+                                <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-row flex-nowrap items-center gap-2 border bg-background shadow-xs">
+                                    <div
                                         className={twMerge(
-                                            "text-sm font-light",
-                                            (halt.stopSequence === 0 ||
-                                                halt.stopSequence ===
+                                            "border-solid h-8 w-8 border-primary border-2 rounded-full flex-none flex items-center justify-center",
+                                            (index === 0 ||
+                                                index ===
                                                     stopTimes.length - 1) &&
-                                                "text-secondary"
+                                                "bg-primary"
                                         )}
-                                        text={(
-                                            halt.stopSequence + 1
-                                        ).toString()}
-                                    />
-                                </div>
-                                <div className="flex flex-col text-xs gap-1">
-                                    <p>{halt.arrivalTime}</p>
-                                    <p>{halt.departureTime}</p>
-                                </div>
-                                <div className="ml-1">
-                                    {halt.stops?.parentStation?.stopName ||
-                                        halt.stops.stopName}
+                                    >
+                                        <P
+                                            className={twMerge(
+                                                "text-sm font-light",
+                                                (index === 0 ||
+                                                    index ===
+                                                        stopTimes.length - 1) &&
+                                                    "text-secondary"
+                                            )}
+                                            text={(index + 1).toString()}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col text-xs gap-1">
+                                        <p>{halt.arrivalTime}</p>
+                                        <p>{halt.departureTime}</p>
+                                    </div>
+                                    <div className="ml-1">
+                                        {halt.stops?.parentStation?.stopName ||
+                                            halt.stops.stopName}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </div>
         </div>

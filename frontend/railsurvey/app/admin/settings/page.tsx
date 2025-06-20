@@ -19,7 +19,7 @@ const settingsPicker: SettingPickerType[] = [
 
 export default function Settings() {
     return (
-        <div className="w-full m-8 flex">
+        <div className="w-full m-8 flex gap-8">
             <Tabs defaultValue="importGtfs">
                 <TabsList>
                     {settingsPicker.map((tab) => (
@@ -33,7 +33,7 @@ export default function Settings() {
                     ))}
                 </TabsList>
                 {settingsPicker.map((tab) => (
-                    <TabsContent key={tab.key} value={tab.key}>
+                    <TabsContent key={tab.key} value={tab.key} className="my-8">
                         {tab.content}
                     </TabsContent>
                 ))}

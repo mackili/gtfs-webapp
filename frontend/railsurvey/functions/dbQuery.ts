@@ -1,11 +1,16 @@
 "use server";
 import { SummaryData, AgencySummaryView, AgencyStatic } from "@/types/db";
-import { Route, Stops, TripDetailsView, RouteDetailsView } from "@/types/gtfs";
+import {
+    Route,
+    Stops,
+    TripDetailsView,
+    RouteDetailsView,
+    StationDetails,
+} from "@/types/gtfs";
 import {
     CompositeSubmission,
     ServiceAspect,
     ServiceAspectFormula,
-    ServiceAspectResult,
     Survey,
     SurveyTemplate,
     TemplateSummary,
@@ -31,7 +36,8 @@ type QueryResponseItemBase =
     | Survey
     | CompositeSubmission
     | TripDetailsView
-    | RouteDetailsView;
+    | RouteDetailsView
+    | StationDetails;
 
 export type QueryResponseItem = QueryResponseItemBase & {
     id: string | number;
@@ -175,6 +181,17 @@ export async function querySurveyTemplate(surveyTemplateId: number) {
         )
     );
     return data.items[0] as TemplateSummary;
+}
+
+export async function queryStationDetails(input: QueryTableInput) {
+    const queryInput: QueryInput = {
+        table: "stops",
+        fields: "stopId,stopCode,stopName,stopDesc,stopLatLon,stopUrl,wheelchairBoarding,locationType,childStations:stops(stopId,platformCode,locationType,stopTimes(arrivalTime,departureTime,...trips(tripHeadsign,tripId,tripShortName,...routes(routeId,routeShortName,routeLongName,routeColor)))),stopTimes(arrivalTime,departureTime,trips(tripHeadsign,tripShortName,...routes(routeId,routeShortName,routeLongName,routeColor)))",
+        limit: 1,
+        query: input.query,
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data;
 }
 
 export async function queryRoutesTable(input: QueryTableInput) {
@@ -433,16 +450,20 @@ export async function calculateAspectValues({
 }: {
     surveyTemplateId: string | number;
     surveyId: string | number;
-    routeId?: string | number;
-    tripId?: string | number;
+    routeId?: string[];
+    tripId?: string[];
 }) {
-    let endpoint = `${process.env.BACKEND_URL}/surveyTemplate/${surveyTemplateId}/${surveyId}/calculate?`;
-    if (routeId) {
-        endpoint += `routeId=${routeId}`;
-    }
-    if (tripId) {
-        endpoint += `tripId=${tripId}`;
-    }
-    const result = await fetch(endpoint);
+    const endpoint = `${process.env.BACKEND_URL}/surveyTemplate/${surveyTemplateId}/${surveyId}/calculate`;
+    const body = {
+        tripId: tripId,
+        routeId: routeId,
+    };
+    const result = await fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
     return result.json();
 }

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, AnyUrl, RootModel
+from pydantic import BaseModel, AnyUrl, RootModel, model_validator
 from typing import List, Optional, Dict, Union, Any
 
 
@@ -6,9 +6,17 @@ class GTFSRT_Options(BaseModel):
     tripUpdates: AnyUrl | None = None
     vehiclePositions: AnyUrl | None = None
     alerts: AnyUrl | None = None
-    batchSize: int | None = None
+    batchSize: int | None = 200
     verbose: bool = False
     write: bool = False
+
+    @model_validator(mode="after")
+    def at_least_one_filled(cls, model):
+        if not (model.tripUpdates or model.vehiclePositions or model.alerts):
+            raise ValueError(
+                "At least one of tripUpdates, vehiclePositions, or alerts must be provided."
+            )
+        return model
 
 
 class GTFSRT_Response(BaseModel):
@@ -127,3 +135,8 @@ class QueryResult(BaseModel):
 
 class ServiceAspectReadResult(QueryResult):
     items: List[ServiceAspectResult]
+
+
+class ServiceAspectCalculationInputBody(BaseModel):
+    tripId: Optional[List[str]] = None
+    routeId: Optional[List[str]] = None
