@@ -3,3 +3,5 @@
 *.env
 *.zip
 *.venv
+# Python technical files
+*.pyc
