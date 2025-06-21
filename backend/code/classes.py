@@ -1,4 +1,4 @@
-from pydantic import BaseModel, AnyUrl, RootModel, model_validator, HttpUrl
+from pydantic import BaseModel, AnyUrl, RootModel
 from typing import List, Optional, Dict, Union, Any
 
 
