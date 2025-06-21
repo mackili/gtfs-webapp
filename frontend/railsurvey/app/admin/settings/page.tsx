@@ -1,6 +1,7 @@
+"use server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReactElement } from "react";
-import ImportForm from "@/components/gtfs-import-form";
+import RealtimeSettings from "./gtfs-rt-settings";
 
 type SettingPickerType = {
     title: string;
@@ -8,19 +9,34 @@ type SettingPickerType = {
     content: string | ReactElement | JSX.Element;
 };
 
-const settingsPicker: SettingPickerType[] = [
-    {
-        title: "Import GTFS",
-        key: "importGtfs",
-        content: <ImportForm />,
-    },
-    { title: "Manage GTFS-RT", key: "magageRT", content: "x" },
-];
-
-export default function Settings() {
+export default async function Settings({
+    searchParams,
+}: {
+    searchParams: Promise<{
+        [key: string]: string | string[] | undefined;
+    }>;
+}) {
+    const queryParams = await searchParams;
+    const settingsPicker: SettingPickerType[] = [
+        // {
+        //     title: "Import GTFS",
+        //     key: "importGtfs",
+        //     content: <ImportForm />,
+        // },
+        {
+            title: "Manage GTFS-RT",
+            key: "magageRT",
+            content: (
+                <RealtimeSettings
+                    value={queryParams.valueRealtime?.toString()}
+                    submitted={queryParams.submitted?.toString() === "true"}
+                />
+            ),
+        },
+    ];
     return (
         <div className="w-full m-8 flex gap-8">
-            <Tabs defaultValue="importGtfs">
+            <Tabs defaultValue="magageRT">
                 <TabsList>
                     {settingsPicker.map((tab) => (
                         <TabsTrigger

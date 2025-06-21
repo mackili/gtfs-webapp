@@ -16,6 +16,11 @@ import {
     TemplateSummary,
 } from "@/types/surveys";
 import { encodeBinary, decodeBinary } from "./encoder";
+import {
+    realtimeSourceAgencySchema,
+    RealtimeSourceResult,
+    realtimeSourceResultSchema,
+} from "@/types/gtfsrt";
 
 type QueryInput = {
     table: string;
@@ -37,7 +42,8 @@ type QueryResponseItemBase =
     | CompositeSubmission
     | TripDetailsView
     | RouteDetailsView
-    | StationDetails;
+    | StationDetails
+    | RealtimeSourceResult;
 
 export type QueryResponseItem = QueryResponseItemBase & {
     id: string | number;
@@ -186,7 +192,7 @@ export async function querySurveyTemplate(surveyTemplateId: number) {
 export async function queryStationDetails(input: QueryTableInput) {
     const queryInput: QueryInput = {
         table: "stops",
-        fields: "stopId,stopCode,stopName,stopDesc,stopLatLon,stopUrl,wheelchairBoarding,locationType,childStations:stops(stopId,platformCode,locationType,stopTimes(arrivalTime,departureTime,...trips(tripHeadsign,tripId,tripShortName,...routes(routeId,routeShortName,routeLongName,routeColor)))),stopTimes(arrivalTime,departureTime,trips(tripHeadsign,tripShortName,...routes(routeId,routeShortName,routeLongName,routeColor)))",
+        fields: "stopId,stopCode,stopName,stopDesc,stopLatLon,stopUrl,wheelchairBoarding,locationType,childStations:stops(stopId,platformCode,locationType,stopTimes(arrivalTime,departureTime,...trips(tripHeadsign,tripId,tripShortName,...routes(routeId,routeShortName,routeLongName,routeColor)))),stopTimes(arrivalTime,departureTime,...trips(tripHeadsign,tripId,tripShortName,...routes(routeId,routeShortName,routeLongName,routeColor)))",
         limit: 1,
         query: input.query,
     };
@@ -201,6 +207,7 @@ export async function queryRoutesTable(input: QueryTableInput) {
         order: input.order,
         offset: input.offset,
         range: input.range?.toString().replace(",", "-"),
+        filter: input.filter,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     const itemsUpdated = (data.items as Route[]).map((item) => {
@@ -230,10 +237,11 @@ export async function queryTemplatesTable(input: QueryTableInput) {
 export async function queryTripsTable(input: QueryTableInput) {
     const queryInput: QueryInput = {
         table: "trips",
-        fields: "tripId,id:tripId,routes(routeId,routeShortName,routeLongName),tripHeadsign",
+        fields: "tripId,id:tripId,routes!inner(routeId,routeShortName,routeLongName),tripHeadsign",
         order: input.order,
         offset: input.offset,
         range: input.range?.toString().replace(",", "-"),
+        filter: input.filter,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     return data;
@@ -326,6 +334,15 @@ export async function queryServiceAspectFormulaList(serviceAspectId: number) {
     return data.items as ServiceAspectFormulaWithTemplate[];
 }
 
+export async function queryRealtimeFeeds() {
+    const queryInput: QueryInput = {
+        table: "realtimeSource",
+        fields: "*,agencies:realtimeSourceAgency(*)",
+    };
+    const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
+    return data.items as RealtimeSourceResult[];
+}
+
 type UpsertInput = {
     table: string;
     data: Array<object> | object;
@@ -354,6 +371,21 @@ export async function upsertDB(
         errorMessage: res.ok ? undefined : res.statusText,
         data: json as Array<object> | object,
     };
+}
+
+export async function upsertRealtimeData(
+    data: RealtimeSourceResult
+): Promise<RealtimeSourceResult> {
+    const endpoint = process.env.BACKEND_URL + `/gtfs-realtime/upsert`;
+    const res = await fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    const json = await res.json();
+    return realtimeSourceResultSchema.parse(json);
 }
 
 export async function upsertSurveyTemplate(

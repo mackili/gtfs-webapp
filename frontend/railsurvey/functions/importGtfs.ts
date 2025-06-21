@@ -11,9 +11,7 @@ export type ImportResponse = {
     };
 };
 
-export async function importGtfs(
-    binary: File
-): Promise<ImportError | ImportResponse> {
+export async function importGtfs(binary: File): Promise<Response> {
     const endpoint = process.env.BACKEND_URL + `/gtfs`;
     console.log(endpoint);
     const formData = new FormData();
@@ -23,17 +21,5 @@ export async function importGtfs(
         method: "POST",
         body: formData,
     });
-    console.log(res.status);
-
-    if (!res.ok) {
-        return {
-            errorCode: res.status,
-            errorMessage: res.statusText,
-        } as ImportError;
-    }
-
-    return {
-        responseCode: res.status,
-        responseBody: await res.json(),
-    } as ImportResponse;
+    return JSON.stringify(res.json());
 }

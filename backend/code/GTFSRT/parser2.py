@@ -62,7 +62,10 @@ def parse_trip_update(data: list, entity_id: list):
     trips_dict = humps.decamelize(df.to_dict(orient="records"))
     trips_df = pd.json_normalize(trips_dict, sep="_")
     trips_df.columns = trips_df.columns.str.replace("trip_", "")
-    trips_df["timestamp"] = pd.to_datetime(trips_df["timestamp"], unit="s")
+    try:
+        trips_df["timestamp"] = pd.to_datetime(trips_df["timestamp"], unit="s")
+    except:
+        trips_df["timestamp"] = None
     return (
         trips_df.rename(columns={"id": "trip_id"}).to_dict(orient="records"),
         stop_time_updates,

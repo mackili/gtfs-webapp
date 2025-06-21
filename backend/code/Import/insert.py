@@ -25,8 +25,6 @@ def insert(file_name: str, data: list, batch_size: int) -> int:
         chunk = data[i : i + batch_size]
         chunk_data = getJsonValue(chunk)  # Convert chunk to JSON string
         res = requests.post(url, data=chunk_data, headers=headers)
-        if res.status_code == 409:
-            return chunk_data
-        # print(f"{file_name}: {res.status_code}")
+        res.raise_for_status()
 
     return res.status_code

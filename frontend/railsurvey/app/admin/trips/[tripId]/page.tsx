@@ -122,6 +122,7 @@ export default async function Home({
                                             </Tooltip>
                                         )
                                     )}
+                                <div className="col-span-full text-sm font-light">{`${tripData.calendar.startDate} - ${tripData.calendar.endDate}`}</div>
                             </div>
                         </div>
                         <div className="col-span-full sm:grid-cols-2 grid gap-4">

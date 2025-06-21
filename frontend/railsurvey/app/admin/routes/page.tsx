@@ -15,6 +15,7 @@ export default async function Home({
         rangeTo = undefined,
         limit = undefined,
         rangeFrom = undefined,
+        agencyId = undefined,
     } = await searchParams;
     const headerList = await headers();
     const numRangeFrom = toNumber(rangeFrom, 0);
@@ -26,6 +27,7 @@ export default async function Home({
         order: "routeId.asc",
         limit: numLimit,
         range: range,
+        filter: agencyId ? `agency_id=eq.${agencyId}` : undefined,
     });
     return (
         <div className="flex flex-col mx-10">

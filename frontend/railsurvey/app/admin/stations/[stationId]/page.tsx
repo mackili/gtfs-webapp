@@ -192,7 +192,7 @@ export default async function Home({
                         >
                             <InfocardsMap
                                 title={`${departure.routeShortName || ""} ${
-                                    departure.tripHeadsign
+                                    departure.tripHeadsign || ""
                                 }`}
                                 data={departure}
                                 keysFilter={[
@@ -200,6 +200,7 @@ export default async function Home({
                                     "departureTime",
                                     "platformCode",
                                     "routeLongName",
+                                    "tripId",
                                 ]}
                             />
                         </Link>

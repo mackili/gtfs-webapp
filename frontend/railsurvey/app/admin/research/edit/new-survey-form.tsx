@@ -54,7 +54,6 @@ export default function SurveyForm({
     });
 
     function onSubmit(values: Survey) {
-        console.log(values);
         const params = new URLSearchParams(
             Object.entries(values)
                 .filter(([, value]) => value !== undefined)

@@ -1,22 +1,17 @@
-from pydantic import BaseModel, AnyUrl, RootModel, model_validator
+from pydantic import BaseModel, AnyUrl, RootModel, model_validator, HttpUrl
 from typing import List, Optional, Dict, Union, Any
 
 
 class GTFSRT_Options(BaseModel):
-    tripUpdates: AnyUrl | None = None
-    vehiclePositions: AnyUrl | None = None
-    alerts: AnyUrl | None = None
+    url: AnyUrl
     batchSize: int | None = 200
     verbose: bool = False
     write: bool = False
 
-    @model_validator(mode="after")
-    def at_least_one_filled(cls, model):
-        if not (model.tripUpdates or model.vehiclePositions or model.alerts):
-            raise ValueError(
-                "At least one of tripUpdates, vehiclePositions, or alerts must be provided."
-            )
-        return model
+
+class GTFS_Upload_Response(BaseModel):
+    success: bool = True
+    error: Optional[Dict] = None
 
 
 class GTFSRT_Response(BaseModel):
@@ -140,3 +135,24 @@ class ServiceAspectReadResult(QueryResult):
 class ServiceAspectCalculationInputBody(BaseModel):
     tripId: Optional[List[str]] = None
     routeId: Optional[List[str]] = None
+
+
+class RealtimeSourceAgency(BaseModel):
+    id: Optional[str | int] = None
+    realtimeSourceId: Optional[str | int] = None
+    agencyId: str | int
+    uuid: Optional[str] = None
+
+
+class RealtimeSource(BaseModel):
+    id: Optional[str | int] = None
+    url: Optional[str] = None
+    write: bool
+    verbose: bool
+    batchSize: int = 200
+    active: bool = False
+    refreshPeriod: int | None = None
+
+
+class RealtimeSourceResult(RealtimeSource):
+    agencies: List[RealtimeSourceAgency]

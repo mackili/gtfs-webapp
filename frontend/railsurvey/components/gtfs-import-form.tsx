@@ -10,12 +10,14 @@ import {
     FormLabel,
 } from "@/components/ui/form";
 import { importGtfs } from "@/functions/importGtfs";
+import { useState } from "react";
 
 type FormData = {
     zipFile: File | null;
 };
 
 export default function ImportForm() {
+    const [error, setError] = useState<undefined | string>(undefined);
     const form = useForm<FormData>({
         defaultValues: {
             zipFile: null,
@@ -24,7 +26,11 @@ export default function ImportForm() {
 
     async function onSubmit(values: FormData) {
         if (values.zipFile) {
-            await importGtfs(values.zipFile);
+            const res = await importGtfs(values.zipFile);
+            console.log(res);
+            // if (!res.ok) {
+            //     console.error(res.json());
+            // }
         }
     }
 

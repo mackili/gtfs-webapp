@@ -17,6 +17,7 @@ export default async function RouteDetails({
         <InfocardsMap
             className={className}
             // title={(data.routeShortName || data.routeLongName)?.toString()}
+            // @ts-expect-error data is fine
             data={parsedData.success && parsedData.data}
             columns={2}
         />

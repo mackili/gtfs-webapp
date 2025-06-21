@@ -1,15 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { IconHelp, IconSearch, IconSettings } from "@tabler/icons-react";
+import { IconHelp, IconSettings } from "@tabler/icons-react";
 import {
     CircleGauge,
     House,
     Workflow,
-    TrainFront,
     CalendarCheck,
     TrainTrack,
-    Code,
     FileQuestion,
     ListStart,
     Activity,
@@ -31,9 +29,7 @@ import {
 
 const data = {
     user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
+        name: "Admin",
     },
     navMain: [
         {
@@ -41,11 +37,11 @@ const data = {
             url: "/admin",
             icon: ListStart,
         },
-        {
-            title: "Dashboard",
-            url: "",
-            icon: CircleGauge,
-        },
+        // {
+        //     title: "Dashboard",
+        //     url: "",
+        //     icon: CircleGauge,
+        // },
         {
             title: "Stations",
             url: "/admin/stations",
@@ -75,11 +71,6 @@ const data = {
             title: "Get Help",
             url: "#",
             icon: IconHelp,
-        },
-        {
-            title: "Search",
-            url: "#",
-            icon: IconSearch,
         },
     ],
     documents: [

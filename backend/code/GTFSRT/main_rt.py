@@ -2,9 +2,17 @@ from google.transit import gtfs_realtime_pb2
 import requests
 from parser2 import *
 from insert_rt import insert
-from optparse import OptionParser
 from typing import Optional
-from classes import *
+from pydantic import BaseModel, ValidationError
+from typing import Literal, Union
+from classes_rt import FeedMessage
+
+
+class FeedHeader(BaseModel):
+    gtfsRealtimeVersion: Literal["2.0"]
+    incrementality: str
+    timestamp: int
+
 
 # REALTIME_SOURCE = "http://s3.amazonaws.com/commtrans-realtime-prod/tripupdates.pb"
 # https://translink.com.au/about-translink/open-data/gtfs-rt
@@ -40,7 +48,10 @@ def main(
 
     def process_feed(feed):
         feed_dict = MessageToDict(feed)
-        feed_header = FeedHeader(**feed_dict["header"])
+        try:
+            feed_pydantic = FeedMessage(**feed_dict)
+        except ValidationError as e:
+            raise e
         feed_df = pd.DataFrame(feed_dict["entity"])
         if "alert" in feed_df.columns:
             if not write:

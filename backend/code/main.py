@@ -10,9 +10,10 @@ import humps
 import tempfile
 import datetime
 from pydantic_core import from_json
+import os
 
 sys.path.insert(1, "GTFSRT")
-from GTFSRT import main_rt as rt
+from GTFSRT import main_rt2 as rt
 from Import.main import importGTFS
 from Surveys.upsert import (
     UpsertSurveyTemplate,
@@ -84,16 +85,20 @@ async def read_query(
     return humps.camelize(response)
 
 
-@app.post("/read-realtime-feed")
-def read_feed(options: GTFSRT_Options):
+@app.post("/gtfs-realtime/read")
+def read_feed(options: GTFSRT_Options) -> None | rt.List[rt.FeedEntity]:
+    env_batch_size = os.getenv("BATCH_SIZE_RT")
     try:
         result = rt.main(
-            alerts=options.alerts,
-            tripUpdates=options.tripUpdates,
-            vehiclePositions=options.vehiclePositions,
+            AnyUrl(options.url),
             write=options.write,
-            batchSize=options.batchSize,
+            batchSize=(
+                options.batchSize
+                if options.batchSize is not None
+                else int(env_batch_size) if env_batch_size is not None else None
+            ),
             verbose=options.verbose,
+            dbUrl=os.getenv("POSTGREST_ENDPOINT"),
         )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=e.errors())
@@ -101,15 +106,20 @@ def read_feed(options: GTFSRT_Options):
 
 
 @app.post("/gtfs")
-async def post_gtfs(file: UploadFile):
+async def post_gtfs(file: UploadFile) -> GTFS_Upload_Response:
     if file.content_type != "application/zip":
         raise HTTPException(
             status_code=400, detail="Invalid data type. Only application/zip accepted"
         )
     file_content: bytes = await file.read()
-    await importGTFS(file_content, 5, True)
-
-    return {"filename": file.filename}
+    res = GTFS_Upload_Response()
+    try:
+        await importGTFS(file_content, 1000, True)
+    except requests.exceptions.HTTPError as e:
+        raise HTTPException(e.response.status_code, detail=e.response.json())
+    except ValidationError as e:
+        raise HTTPException(400, detail=e.json())
+    return res
 
 
 @app.post("/{table}")
@@ -312,3 +322,50 @@ async def calculate_aspect_values(
     except ValidationError as e:
         return ServiceAspectResultError(errorMessage=str(e), errorDetails=e.json())
     return final
+
+
+@app.post("/gtfs-realtime/upsert")
+async def upsert_gtfsrt(data: RealtimeSourceResult):
+    # -> RealtimeSourceResult:
+    endpoint_source_agency = BASE_URL + "/" + humps.decamelize("realtimeSourceAgency")
+    headers = {
+        "Prefer": "resolution=merge-duplicates,return=representation",
+    }
+    source = RealtimeSource(**data.model_dump())
+    # return UpsertInput(**source.model_dump(exclude_none=True, exclude_unset=True))
+    upserted_source = RealtimeSource(
+        **humps.camelize(
+            (
+                await upsert_table(
+                    "realtimeSource",
+                    UpsertInput(
+                        **source.model_dump(exclude_none=True, exclude_unset=True)
+                    ),
+                )
+            )[0]
+        )
+    )
+    agencies: List[RealtimeSourceAgency] = []
+    for agency in data.agencies:
+        agency.realtimeSourceId = upserted_source.id
+        agencies.append(agency)
+    # Delete all attached agencies temporarily
+    requests.delete(
+        f"{endpoint_source_agency}?realtime_source_id=eq.{upserted_source.id}"
+    )
+    upserted_agencies = humps.camelize(
+        requests.post(
+            endpoint_source_agency,
+            headers=headers,
+            json=humps.decamelize(
+                [
+                    agency.model_dump(exclude_none=True, exclude_unset=True)
+                    for agency in agencies
+                ]
+            ),
+        ).json()
+    )
+    return RealtimeSourceResult(
+        **upserted_source.model_dump(),
+        agencies=[RealtimeSourceAgency(**agency) for agency in upserted_agencies],
+    )

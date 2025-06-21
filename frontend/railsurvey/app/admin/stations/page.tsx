@@ -24,7 +24,7 @@ export default async function Home({
     const range: [number, number] = [numRangeFrom, numRangeTo];
 
     const data = await queryStationsTable({
-        order: "stopId.asc",
+        order: "stopName.asc",
         limit: numLimit,
         range: range,
     });
