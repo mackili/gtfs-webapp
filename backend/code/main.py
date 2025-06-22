@@ -1,16 +1,18 @@
 from fastapi import FastAPI, HTTPException, UploadFile, Query, BackgroundTasks
 from typing import Union, Annotated
 import requests
-import subprocess
 import simplejson as json
 from classes import *
 import sys
 from pydantic import ValidationError, PydanticUserError
 import humps
-import tempfile
 import datetime
 from pydantic_core import from_json
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+BASE_URL = os.getenv("API_URL") or ""
 
 sys.path.insert(1, "GTFSRT")
 from GTFSRT import main_rt2 as rt
@@ -28,7 +30,6 @@ from Surveys.lua import *
 
 app = FastAPI()
 background_task_running = False
-BASE_URL = "http://localhost:3000"
 
 
 @app.get("/query")
@@ -98,7 +99,7 @@ def read_feed(options: GTFSRT_Options) -> None | rt.List[rt.FeedEntity]:
                 else int(env_batch_size) if env_batch_size is not None else None
             ),
             verbose=options.verbose,
-            dbUrl=os.getenv("POSTGREST_ENDPOINT"),
+            dbUrl=BASE_URL,
         )
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=e.errors())
@@ -160,6 +161,7 @@ async def upsert_gtfsrt(
             upserted_source.verbose,
             upserted_source.write,
             upserted_source.refreshPeriod,
+            BASE_URL,
         )
         background_task_running = True
     elif not upserted_source.active and background_task_running:

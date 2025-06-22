@@ -77,13 +77,18 @@ background_task_stop_event = asyncio.Event()
 
 # Background function to process the feed continuously
 async def background_function(
-    url: AnyUrl, batchSize: int, verbose: bool, write: bool, sleep: int
+    url: AnyUrl,
+    batchSize: int,
+    verbose: bool,
+    write: bool,
+    sleep: int,
+    dbUrl: str | None = None,
 ):
     global background_task_stop_event
     while not background_task_stop_event.is_set():
         print("working")
         try:
-            main(url, write=write, batchSize=batchSize, verbose=verbose)
+            main(url, write=write, batchSize=batchSize, verbose=verbose, dbUrl=dbUrl)
         except Exception as e:
             print(f"Error in background function: {e}")
         await asyncio.sleep(sleep)  # Adjust the interval as needed

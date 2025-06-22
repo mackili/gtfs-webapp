@@ -1,6 +1,5 @@
 "use client";
 import {
-    SurveyTemplate,
     TemplateSection,
     TemplateQuestion,
     Author,
@@ -269,7 +268,9 @@ export default function TemplateCreator({ data }: TemplateCreatorProps) {
     const router = useRouter();
     const [templateData, setTemplateData] =
         useState<TemplateSummary>(creatorForm);
-    const [updatedData, setUpdatedData] = useState<TemplateSummary>({});
+    const [updatedData, setUpdatedData] = useState<TemplateSummary | object>(
+        {}
+    );
     const [sectionsArray, setSectionsArray] = useState<number[]>([]);
     const [authorsArray, setAuthorsArray] = useState<number[]>([]);
     const [questionsArray, setQuestionsArray] = useState<number[]>([]);
@@ -343,13 +344,14 @@ export default function TemplateCreator({ data }: TemplateCreatorProps) {
     const form = useForm();
 
     function onsubmit(values: object) {
-        console.log(values);
+        // @ts-expect-error all good
         setUpdatedData(formdataToSurveyTemplate(values));
     }
 
     useEffect(() => {
         const upsertData = async () => {
             setLoading(true);
+            // @ts-expect-error the value is always updated before upsert
             const result = await upsertSurveyTemplate(updatedData);
             setError(result.isSuccess ? false : result.errorMessage || "");
             console.log(result);
@@ -367,6 +369,7 @@ export default function TemplateCreator({ data }: TemplateCreatorProps) {
         if (Object.keys(updatedData).length > 0) {
             upsertData();
         }
+        // eslint-disable-next-line
     }, [updatedData]);
 
     return (
@@ -397,150 +400,161 @@ export default function TemplateCreator({ data }: TemplateCreatorProps) {
                                           >
                                               <H3 text={section.title || ""} />
                                               <div className="mt-4 grid gap-4">
-                                                  {(section.hasRepeater
-                                                      ? getArrayForSection(
-                                                            section.id as TemplateSectionId
-                                                        )
-                                                      : [0]
-                                                  ).map((item, index) => (
-                                                      <div
-                                                          key={index}
-                                                          className="md:grid-cols-2 pb-4 grid gap-4 border-b border-secondary "
-                                                      >
-                                                          {section.hasRepeater ? (
-                                                              <div className="flex col-span-full align-middle justify-between">
-                                                                  <H4
-                                                                      text={`${
-                                                                          section.title
-                                                                      } ${
-                                                                          index +
-                                                                          1
-                                                                      }`}
-                                                                      className="h-8 align-middle"
-                                                                  />
-                                                                  <Button
-                                                                      variant="ghost"
-                                                                      size="sm"
-                                                                      onClick={() =>
-                                                                          handleRemoveItem(
-                                                                              section.id as TemplateSectionId,
-                                                                              item
-                                                                          )
-                                                                      }
-                                                                      className="cursor-pointer"
-                                                                      type="button"
-                                                                  >
-                                                                      <MinusCircle />
-                                                                  </Button>
-                                                              </div>
-                                                          ) : null}
-                                                          {templateData.templateQuestions !==
-                                                          undefined
-                                                              ? templateData.templateQuestions
-                                                                    .filter(
-                                                                        (a) =>
-                                                                            a.templateSectionId ===
-                                                                            section.id
-                                                                    )
-                                                                    .sort(
-                                                                        (
-                                                                            a,
-                                                                            b
-                                                                        ) =>
-                                                                            a.displayOrder -
-                                                                            b.displayOrder
-                                                                    )
-                                                                    .map(
-                                                                        (
-                                                                            question
-                                                                        ) => (
-                                                                            <FormField
-                                                                                key={`${item}:${question.id}`}
-                                                                                control={
-                                                                                    form.control
-                                                                                }
-                                                                                name={`${section.id.toString()}:${item.toString()}:${question.id.toString()}`}
-                                                                                render={({
-                                                                                    field,
-                                                                                }) => (
-                                                                                    <FormItem className="flex flex-col flex-nowrap items-start">
-                                                                                        <FormLabel>
-                                                                                            {
-                                                                                                question.text
-                                                                                            }
-                                                                                        </FormLabel>
-                                                                                        {question.answerFormat ===
-                                                                                        "select" ? (
-                                                                                            <Select
-                                                                                                onValueChange={
-                                                                                                    field.onChange
-                                                                                                }
-                                                                                                defaultValue={
-                                                                                                    field.value
-                                                                                                }
-                                                                                            >
-                                                                                                <FormControl>
-                                                                                                    <SelectTrigger className="w-full">
-                                                                                                        <SelectValue />
-                                                                                                    </SelectTrigger>
-                                                                                                </FormControl>
-                                                                                                <SelectContent>
-                                                                                                    {question.selectValues?.map(
-                                                                                                        (
-                                                                                                            selectVal,
-                                                                                                            index
-                                                                                                        ) => (
-                                                                                                            <SelectItem
-                                                                                                                value={
-                                                                                                                    selectVal
-                                                                                                                }
-                                                                                                                key={
-                                                                                                                    index
-                                                                                                                }
-                                                                                                            >
-                                                                                                                {
-                                                                                                                    selectVal
-                                                                                                                }
-                                                                                                            </SelectItem>
-                                                                                                        )
-                                                                                                    )}
-                                                                                                </SelectContent>
-                                                                                            </Select>
-                                                                                        ) : (
-                                                                                            <FormControl>
-                                                                                                <Input
-                                                                                                    type={
-                                                                                                        question.answerFormat
-                                                                                                    }
-                                                                                                    {...field}
-                                                                                                ></Input>
-                                                                                            </FormControl>
-                                                                                        )}
-                                                                                        <FormDescription>
-                                                                                            {
-                                                                                                question?.description
-                                                                                            }
-                                                                                        </FormDescription>
-                                                                                    </FormItem>
-                                                                                )}
-                                                                            ></FormField>
+                                                  {
+                                                      // @ts-expect-error this data structure is extended
+                                                      (section.hasRepeater
+                                                          ? getArrayForSection(
+                                                                section.id as TemplateSectionId
+                                                            )
+                                                          : [0]
+                                                      ).map((item, index) => (
+                                                          <div
+                                                              key={index}
+                                                              className="md:grid-cols-2 pb-4 grid gap-4 border-b border-secondary "
+                                                          >
+                                                              {
+                                                                  // @ts-expect-error this data structure is extended
+                                                                  section.hasRepeater ? (
+                                                                      <div className="flex col-span-full align-middle justify-between">
+                                                                          <H4
+                                                                              text={`${
+                                                                                  section.title
+                                                                              } ${
+                                                                                  index +
+                                                                                  1
+                                                                              }`}
+                                                                              className="h-8 align-middle"
+                                                                          />
+                                                                          <Button
+                                                                              variant="ghost"
+                                                                              size="sm"
+                                                                              onClick={() =>
+                                                                                  handleRemoveItem(
+                                                                                      section.id as TemplateSectionId,
+                                                                                      item
+                                                                                  )
+                                                                              }
+                                                                              className="cursor-pointer"
+                                                                              type="button"
+                                                                          >
+                                                                              <MinusCircle />
+                                                                          </Button>
+                                                                      </div>
+                                                                  ) : null
+                                                              }
+                                                              {templateData.templateQuestions !==
+                                                              undefined
+                                                                  ? templateData.templateQuestions
+                                                                        .filter(
+                                                                            (
+                                                                                a
+                                                                            ) =>
+                                                                                a.templateSectionId ===
+                                                                                section.id
                                                                         )
-                                                                    )
-                                                              : null}
-                                                      </div>
-                                                  ))}
-                                                  {section.hasRepeater ? (
-                                                      <Button
-                                                          variant="secondary"
-                                                          onClick={() =>
-                                                              handleNewItem(
-                                                                  section.id as TemplateSectionId
-                                                              )
-                                                          }
-                                                          className="cursor-pointer col-span-full"
-                                                          type="button"
-                                                      >{`Add ${section.title}`}</Button>
-                                                  ) : null}
+                                                                        .sort(
+                                                                            (
+                                                                                a,
+                                                                                b
+                                                                            ) =>
+                                                                                a.displayOrder -
+                                                                                b.displayOrder
+                                                                        )
+                                                                        .map(
+                                                                            (
+                                                                                question
+                                                                            ) => (
+                                                                                <FormField
+                                                                                    key={`${item}:${question.id}`}
+                                                                                    control={
+                                                                                        form.control
+                                                                                    }
+                                                                                    name={`${section.id.toString()}:${item.toString()}:${question.id.toString()}`}
+                                                                                    render={({
+                                                                                        field,
+                                                                                    }) => (
+                                                                                        <FormItem className="flex flex-col flex-nowrap items-start">
+                                                                                            <FormLabel>
+                                                                                                {
+                                                                                                    question.text
+                                                                                                }
+                                                                                            </FormLabel>
+                                                                                            {question.answerFormat ===
+                                                                                            "select" ? (
+                                                                                                <Select
+                                                                                                    onValueChange={
+                                                                                                        field.onChange
+                                                                                                    }
+                                                                                                    defaultValue={
+                                                                                                        field.value
+                                                                                                    }
+                                                                                                >
+                                                                                                    <FormControl>
+                                                                                                        <SelectTrigger className="w-full">
+                                                                                                            <SelectValue />
+                                                                                                        </SelectTrigger>
+                                                                                                    </FormControl>
+                                                                                                    <SelectContent>
+                                                                                                        {question.selectValues?.map(
+                                                                                                            (
+                                                                                                                selectVal,
+                                                                                                                index
+                                                                                                            ) => (
+                                                                                                                <SelectItem
+                                                                                                                    value={
+                                                                                                                        selectVal
+                                                                                                                    }
+                                                                                                                    key={
+                                                                                                                        index
+                                                                                                                    }
+                                                                                                                >
+                                                                                                                    {
+                                                                                                                        selectVal
+                                                                                                                    }
+                                                                                                                </SelectItem>
+                                                                                                            )
+                                                                                                        )}
+                                                                                                    </SelectContent>
+                                                                                                </Select>
+                                                                                            ) : (
+                                                                                                <FormControl>
+                                                                                                    <Input
+                                                                                                        type={
+                                                                                                            question.answerFormat
+                                                                                                        }
+                                                                                                        {...field}
+                                                                                                    ></Input>
+                                                                                                </FormControl>
+                                                                                            )}
+                                                                                            <FormDescription>
+                                                                                                {
+                                                                                                    question?.description
+                                                                                                }
+                                                                                            </FormDescription>
+                                                                                        </FormItem>
+                                                                                    )}
+                                                                                ></FormField>
+                                                                            )
+                                                                        )
+                                                                  : null}
+                                                          </div>
+                                                      ))
+                                                  }
+                                                  {
+                                                      // @ts-expect-error this data structure is extended
+                                                      section.hasRepeater ? (
+                                                          <Button
+                                                              variant="secondary"
+                                                              onClick={() =>
+                                                                  handleNewItem(
+                                                                      section.id as TemplateSectionId
+                                                                  )
+                                                              }
+                                                              className="cursor-pointer col-span-full"
+                                                              type="button"
+                                                          >{`Add ${section.title}`}</Button>
+                                                      ) : null
+                                                  }
                                               </div>
                                           </section>
                                       ))

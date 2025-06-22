@@ -1,14 +1,6 @@
 "use client";
 import { useForm } from "react-hook-form";
-import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectItem,
-    SelectContent,
-} from "@/components/ui/select";
 import {
     Form,
     FormControl,
@@ -23,10 +15,10 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { encodeBinary } from "@/functions/encoder";
 import { TemplateQuestion } from "@/types/surveys";
 
-const yesNoValues = [
-    { value: "true", label: "Yes" },
-    { value: "false", label: "No" },
-];
+// const yesNoValues = [
+//     { value: "true", label: "Yes" },
+//     { value: "false", label: "No" },
+// ];
 
 export default function SurveyResponseForm({
     questions,
@@ -40,8 +32,16 @@ export default function SurveyResponseForm({
         // resolver: standardSchemaResolver(),
     });
 
-    function onSubmit(values) {
-        console.log(values);
+    function onSubmit(values: {
+        [key: string]:
+            | string
+            | number
+            | object
+            | []
+            | boolean
+            | null
+            | undefined;
+    }) {
         const params = new URLSearchParams({
             value: encodeBinary(JSON.stringify(values)),
             submitted: "true",

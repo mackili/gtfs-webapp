@@ -1,48 +1,76 @@
 version: "3.8"
 services:
-  db:
-    image: postgres:latest
-    container_name: servqual_db
-    restart: always
-    ports:
-      - "5432:5432"
-    env_file:
-      - path: "database.env"
-        required: true
-    volumes:
-      - ./database:/docker-entrypoint-initdb.d
-      - servqual_db:/var/lib/postgresql/data
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: servqual_pgadmin4
-    restart: always
-    ports:
-      - "5050:80"
-    env_file:
-      - path: "pgadmin.env"
-        required: true
-    volumes:
-      - servqual_pgadmin4:/var/lib/pgadmin
-    depends_on:
-      - db
-  postgrest:
-    image: postgrest/postgrest
-    container_name: servqual_db_api
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-    env_file:
-      - path: "postgrest.env"
-        required: true
-  swagger:
-    image: swaggerapi/swagger-ui
-    ports:
-      - "8080:8080"
-    expose:
-      - "8080"
-    environment:
-      API_URL: http://localhost:3000/
+    db:
+        image: postgres:latest
+        container_name: servqual_db
+        restart: always
+        ports:
+            - "5432:5432"
+        env_file:
+            - path: "database.env"
+              required: true
+        volumes:
+            - ./database:/docker-entrypoint-initdb.d
+            - servqual_db:/var/lib/postgresql/data
+    pgadmin:
+        image: dpage/pgadmin4:latest
+        container_name: servqual_pgadmin4
+        restart: always
+        ports:
+            - "5050:80"
+        env_file:
+            - path: "pgadmin.env"
+              required: true
+        volumes:
+            - servqual_pgadmin4:/var/lib/pgadmin
+        depends_on:
+            - db
+    postgrest:
+        image: postgrest/postgrest
+        container_name: servqual_db_api
+        ports:
+            - "3000:3000"
+        depends_on:
+            - db
+        env_file:
+            - path: "postgrest.env"
+              required: true
+    swagger:
+        image: swaggerapi/swagger-ui:v5.25.2
+        container_name: api_documentation_db
+        ports:
+            - "8080:8080"
+        expose:
+            - "8080"
+        environment:
+            URLS: '[ { url: "http://localhost:3000/", name: "Database API Documentation" }]'
+    backend:
+        image: railsurvey-backend
+        container_name: railsurvey_backend_python
+        build: ./backend
+        ports:
+            - "8000:8000"
+        expose:
+            - "8000"
+        environment:
+            API_URL: http://host.docker.internal:3000/
+            DO_UPSERT: true
+            BATCH_SIZE: 1000
+            BATCH_SIZE_RT: 1
+    frontend:
+        image: railsurvey-frontend
+        container_name: railsurvey_frontend_python
+        build: ./frontend
+        ports:
+            - "4000:4000"
+        expose:
+            - "4000"
+        environment:
+            NODE_ENV: production
+            PORT: 4000
+            BACKEND_URL: http://host.docker.internal:8000/
+        depends_on:
+            - backend
 volumes:
-  servqual_db:
-  servqual_pgadmin4:
+    servqual_db:
+    servqual_pgadmin4:

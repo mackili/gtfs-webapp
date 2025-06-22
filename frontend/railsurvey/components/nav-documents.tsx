@@ -1,11 +1,10 @@
 "use client";
 
-import { PlusCircle, Search, Trash2, LucideIcon, Ellipsis } from "lucide-react";
+import { PlusCircle, Search, LucideIcon, Ellipsis } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {

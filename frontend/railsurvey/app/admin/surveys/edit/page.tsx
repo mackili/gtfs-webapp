@@ -20,6 +20,7 @@ export default async function Page({
     const data = await querySurveyTemplate(Number(templateId));
     const submitted = params.isSubmitted;
     if (submitted === "true") {
+        // eslint-disable-next-line
         const { id, isSubmitted, ...formData } = params;
         try {
             const res = await upsertSurveyTemplate(

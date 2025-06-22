@@ -8,16 +8,16 @@ import {
     FormField,
     FormItem,
     FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
-import { importGtfs } from "@/functions/importGtfs";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type FormData = {
     zipFile: File | null;
 };
 
 export default function ImportForm() {
-    const [error, setError] = useState<undefined | string>(undefined);
+    const router = useRouter();
     const form = useForm<FormData>({
         defaultValues: {
             zipFile: null,
@@ -26,11 +26,22 @@ export default function ImportForm() {
 
     async function onSubmit(values: FormData) {
         if (values.zipFile) {
-            const res = await importGtfs(values.zipFile);
-            console.log(res);
-            // if (!res.ok) {
-            //     console.error(res.json());
-            // }
+            const formData = new FormData();
+            formData.append("zipFile", values.zipFile);
+            const res = await fetch("/api/gtfs", {
+                method: "POST",
+                body: formData,
+            });
+            if (!res.ok) {
+                form.setError("zipFile", {
+                    type: "value",
+                    message:
+                        JSON.stringify(await res.json(), null, 4) ||
+                        res.statusText,
+                });
+                return;
+            }
+            router.push("/admin");
         }
     }
 
@@ -46,7 +57,7 @@ export default function ImportForm() {
                             control={form.control}
                             name="zipFile"
                             render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="max-w-256">
                                     <FormLabel>GTFS zip file</FormLabel>
                                     <FormControl>
                                         <Input
@@ -58,8 +69,14 @@ export default function ImportForm() {
                                                     e.target.files?.[0] || null
                                                 );
                                             }}
+                                            required={true}
                                         />
                                     </FormControl>
+                                    <div className="overflow-scroll">
+                                        <pre>
+                                            <FormMessage />
+                                        </pre>
+                                    </div>
                                 </FormItem>
                             )}
                         ></FormField>

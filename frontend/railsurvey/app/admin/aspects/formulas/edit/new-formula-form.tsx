@@ -41,6 +41,7 @@ export default function ServiceAspectFormulaForm({
     defaultValue,
     serviceAspects = [],
     surveyTemplate,
+    // eslint-disable-next-line
     templateQuestions = [],
     surveyTemplateChoice = [],
     serviceAspectId = undefined,
@@ -64,7 +65,6 @@ export default function ServiceAspectFormulaForm({
     });
 
     function onSubmit(values: ServiceAspectFormula) {
-        console.log(values);
         const params = new URLSearchParams(
             Object.entries(values)
                 .filter(([, value]) => value !== undefined)

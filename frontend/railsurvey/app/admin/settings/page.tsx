@@ -1,12 +1,13 @@
 "use server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ReactElement } from "react";
+import React, { ReactElement } from "react";
 import RealtimeSettings from "./gtfs-rt-settings";
+import ImportForm from "@/components/gtfs-import-form";
 
 type SettingPickerType = {
     title: string;
     key: string;
-    content: string | ReactElement | JSX.Element;
+    content: string | ReactElement | React.JSX.Element;
 };
 
 export default async function Settings({
@@ -18,11 +19,11 @@ export default async function Settings({
 }) {
     const queryParams = await searchParams;
     const settingsPicker: SettingPickerType[] = [
-        // {
-        //     title: "Import GTFS",
-        //     key: "importGtfs",
-        //     content: <ImportForm />,
-        // },
+        {
+            title: "Import GTFS",
+            key: "importGtfs",
+            content: <ImportForm />,
+        },
         {
             title: "Manage GTFS-RT",
             key: "magageRT",

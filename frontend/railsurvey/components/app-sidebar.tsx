@@ -3,7 +3,6 @@
 import * as React from "react";
 import { IconHelp, IconSettings } from "@tabler/icons-react";
 import {
-    CircleGauge,
     House,
     Workflow,
     CalendarCheck,

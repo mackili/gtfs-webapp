@@ -15,15 +15,8 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AlertTriangle } from "lucide-react";
-import RouteTypeIcon from "../../routes/[routeId]/route-type-icon";
 
-export const surveyKeys = [
-    "id",
-    "isActive",
-    "timestamp",
-    "answerCount",
-    "uuid",
-];
+const surveyKeys = ["id", "isActive", "timestamp", "answerCount", "uuid"];
 
 export default async function Home({
     params,
@@ -119,6 +112,7 @@ export default async function Home({
                     <InfocardsMap
                         key={result.formulaId}
                         title={result.serviceAspectTitle}
+                        // @ts-expect-error due to data enrichment
                         data={result}
                         contentOverride={
                             typeof result.value === "string" ||

@@ -16,18 +16,18 @@ const sortAlphabetically = (a: string, b: string) => {
 export default async function Home() {
     const summary = await queryAgencyDetails();
     return (
-        <div className="flex w-full flex-col mx-10">
+        <div className="flex flex-col mx-10">
             <div className="grid w-full my-10">
                 <H1 text="Welcome!" />
             </div>
             {summary
                 .sort((a, b) => sortAlphabetically(a.agencyName, b.agencyName))
                 .map((agency) => (
-                    <div key={agency.agencyId}>
+                    <div key={agency.agencyId} className="flex flex-col mb-8">
                         <H3 key={agency.agencyName} text={agency.agencyName} />
                         <div
                             key={agency.agencyId}
-                            className="grid my-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-between"
+                            className="grid my-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-between justify-items-stretch"
                         >
                             {agency.statistics &&
                                 agency.statistics.map((statistic) => (

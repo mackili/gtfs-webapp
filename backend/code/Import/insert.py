@@ -2,7 +2,7 @@ import requests
 import os
 import pandas as pd
 
-base_url = "http://localhost:3000"
+base_url = os.getenv("API_URL") or ""
 headers = {}
 
 

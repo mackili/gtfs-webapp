@@ -13,13 +13,11 @@ export type ImportResponse = {
 
 export async function importGtfs(binary: File): Promise<Response> {
     const endpoint = process.env.BACKEND_URL + `/gtfs`;
-    console.log(endpoint);
     const formData = new FormData();
     formData.append("file", binary);
 
-    const res = await fetch(endpoint, {
+    return await fetch(endpoint, {
         method: "POST",
         body: formData,
     });
-    return JSON.stringify(res.json());
 }

@@ -316,7 +316,9 @@ export default function TemplateEditor({
               )
             : []
     );
+    // eslint-disable-next-line
     const [isLoading, setLoading] = useState(false);
+    // eslint-disable-next-line
     const [error, setError] = useState<false | string>(false);
 
     const getArrayForSection = (sectionId: TemplateSectionId) => {
