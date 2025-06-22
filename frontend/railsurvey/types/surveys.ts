@@ -139,7 +139,7 @@ export type SurveySubmission = z.infer<typeof surveySubmissionSchema>;
 export const submittedAnswerSchema = z.object({
     id: z.number().int().optional(),
     submissionId: z.number().int().optional(),
-    templateQuestionId: z.number().int(),
+    templateQuestionId: z.union([z.number().int(), z.string()]),
     value: z.string(),
     templateQuestion: templateQuestionSchema.optional(),
     uuid: z.uuid().optional(),

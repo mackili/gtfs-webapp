@@ -18,7 +18,7 @@ export default async function Page({
 }) {
     const queryParams = await searchParams;
     const survey = queryParams.id
-        ? ((await querySurveyDetails(queryParams.id.toString()))
+        ? ((await querySurveyDetails({ surveyId: queryParams.id.toString() }))
               .items[0] as Survey)
         : undefined;
     let surveyId = survey?.id;

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Query
+from fastapi import FastAPI, HTTPException, UploadFile, Query, BackgroundTasks
 from typing import Union, Annotated
 import requests
 import subprocess
@@ -27,7 +27,7 @@ from Surveys.delete import handle_delete_difference
 from Surveys.lua import *
 
 app = FastAPI()
-
+background_task_running = False
 BASE_URL = "http://localhost:3000"
 
 
@@ -103,6 +103,73 @@ def read_feed(options: GTFSRT_Options) -> None | rt.List[rt.FeedEntity]:
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=e.errors())
     return result
+
+
+@app.post("/gtfs-realtime/upsert")
+async def upsert_gtfsrt(
+    data: RealtimeSourceResult, background_tasks: BackgroundTasks
+) -> RealtimeSourceResult:
+    global background_task_running
+    endpoint_source_agency = BASE_URL + "/" + humps.decamelize("realtimeSourceAgency")
+    headers = {
+        "Prefer": "resolution=merge-duplicates,return=representation",
+    }
+    source = RealtimeSource(**data.model_dump())
+    upserted_source = RealtimeSource(
+        **humps.camelize(
+            (
+                await upsert_table(
+                    "realtimeSource",
+                    UpsertInput(
+                        **source.model_dump(exclude_none=True, exclude_unset=True)
+                    ),
+                )
+            )[0]
+        )
+    )
+    agencies: List[RealtimeSourceAgency] = []
+    for agency in data.agencies:
+        agency.realtimeSourceId = upserted_source.id
+        agencies.append(agency)
+    # Delete all attached agencies temporarily
+    requests.delete(
+        f"{endpoint_source_agency}?realtime_source_id=eq.{upserted_source.id}"
+    )
+    upserted_agencies = humps.camelize(
+        requests.post(
+            endpoint_source_agency,
+            headers=headers,
+            json=humps.decamelize(
+                [
+                    agency.model_dump(exclude_none=True, exclude_unset=True)
+                    for agency in agencies
+                ]
+            ),
+        ).json()
+    )
+    if (
+        upserted_source.active
+        and not background_task_running
+        and upserted_source.url is not None
+        and upserted_source.refreshPeriod is not None
+    ):
+        background_tasks.add_task(
+            rt.background_function,
+            AnyUrl(upserted_source.url),
+            upserted_source.batchSize,
+            upserted_source.verbose,
+            upserted_source.write,
+            upserted_source.refreshPeriod,
+        )
+        background_task_running = True
+    elif not upserted_source.active and background_task_running:
+        rt.stop_background_function()
+        background_task_running = False
+
+    return RealtimeSourceResult(
+        **upserted_source.model_dump(),
+        agencies=[RealtimeSourceAgency(**agency) for agency in upserted_agencies],
+    )
 
 
 @app.post("/gtfs")
@@ -322,50 +389,3 @@ async def calculate_aspect_values(
     except ValidationError as e:
         return ServiceAspectResultError(errorMessage=str(e), errorDetails=e.json())
     return final
-
-
-@app.post("/gtfs-realtime/upsert")
-async def upsert_gtfsrt(data: RealtimeSourceResult):
-    # -> RealtimeSourceResult:
-    endpoint_source_agency = BASE_URL + "/" + humps.decamelize("realtimeSourceAgency")
-    headers = {
-        "Prefer": "resolution=merge-duplicates,return=representation",
-    }
-    source = RealtimeSource(**data.model_dump())
-    # return UpsertInput(**source.model_dump(exclude_none=True, exclude_unset=True))
-    upserted_source = RealtimeSource(
-        **humps.camelize(
-            (
-                await upsert_table(
-                    "realtimeSource",
-                    UpsertInput(
-                        **source.model_dump(exclude_none=True, exclude_unset=True)
-                    ),
-                )
-            )[0]
-        )
-    )
-    agencies: List[RealtimeSourceAgency] = []
-    for agency in data.agencies:
-        agency.realtimeSourceId = upserted_source.id
-        agencies.append(agency)
-    # Delete all attached agencies temporarily
-    requests.delete(
-        f"{endpoint_source_agency}?realtime_source_id=eq.{upserted_source.id}"
-    )
-    upserted_agencies = humps.camelize(
-        requests.post(
-            endpoint_source_agency,
-            headers=headers,
-            json=humps.decamelize(
-                [
-                    agency.model_dump(exclude_none=True, exclude_unset=True)
-                    for agency in agencies
-                ]
-            ),
-        ).json()
-    )
-    return RealtimeSourceResult(
-        **upserted_source.model_dump(),
-        agencies=[RealtimeSourceAgency(**agency) for agency in upserted_agencies],
-    )

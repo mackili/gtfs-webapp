@@ -146,7 +146,7 @@ export const realtimeSourceSchema = z.object({
     active: z.preprocess((value) => {
         return value === "true";
     }, z.boolean().default(false)),
-    refreshPerios: z.int().nullish(),
+    refreshPeriod: z.coerce.number().int().min(30).nullish(),
 });
 
 export type RealtimeSource = z.infer<typeof realtimeSourceSchema>;
@@ -160,3 +160,30 @@ export const realtimeSourceResultSchemaArray = z.array(
 );
 
 export type RealtimeSourceResult = z.infer<typeof realtimeSourceResultSchema>;
+
+export const tripUpdateResultSchema = z.object({
+    oid: z.string(),
+    tripId: z.string(),
+    scheduleRelationship: z.string().nullable(),
+    vehicleId: z.string().nullable(),
+    vehicleLabel: z.string().nullable(),
+    vehicleLicensePlate: z.string().nullable(),
+    timestamp: z.string().nullable(),
+    delay: z.int().nullable(),
+    stopTimeUpdates: z.array(
+        z.object({
+            oid: z.string(),
+            stopId: z.string().nullable(),
+            stopSequence: z.int().nullable(),
+            arrivalTime: z.iso.datetime().nullable(),
+            departureTime: z.iso.datetime().nullable(),
+            arrivalUncertainty: z.coerce.number().int().nullable(),
+            departureUncertainty: z.coerce.number().int().nullable(),
+            arrivalDelay: z.coerce.number().int().nullable(),
+            departureDelay: z.coerce.number().int().nullable(),
+            scheduleRelationship: z.string().nullable(),
+        })
+    ),
+});
+
+export type TripUpdateResult = z.infer<typeof tripUpdateResultSchema>;

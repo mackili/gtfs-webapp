@@ -17,3 +17,4 @@ humps
 simplejson
 pydantic_extra_types
 lupa == 2.5
+asyncio

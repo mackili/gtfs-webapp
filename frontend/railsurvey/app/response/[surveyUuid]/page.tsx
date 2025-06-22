@@ -10,9 +10,9 @@ import type {
     SubmittedAnswer,
     CompositeSubmission,
 } from "@/types/surveys";
-import QuestionRender from "@/components/form-question";
-import SubmitFormButton from "@/components/submit-button";
 import { redirect } from "next/navigation";
+import SurveyResponseForm from "./response-form";
+import { decodeBinary } from "@/functions/encoder";
 
 export default async function Survey({
     params,
@@ -27,24 +27,26 @@ export default async function Survey({
     const templateSummary = await querySurveyTemplate(
         surveyMeta.surveyTemplateId
     );
-    const questionIdsArray =
-        templateSummary.templateQuestions?.map((question) => {
-            return question.id.toString();
-        }) || [];
     const query = await searchParams;
     const errorIds = query.errorIds ? query.errorIds.toString().split(",") : [];
     const isError = errorIds.length > 0;
     let submission: CompositeSubmission | undefined = undefined;
 
-    if (query.submitted === "true" && isError === false) {
-        const answers = Object.keys(query)
-            .filter((questionId) => questionIdsArray.includes(questionId))
-            .map((questionId) => {
-                return {
-                    templateQuestionId: Number(questionId),
-                    value: query[questionId],
-                } as SubmittedAnswer;
-            });
+    if (query.submitted === "true" && isError === false && query.value) {
+        const values = JSON.parse(
+            decodeBinary(
+                typeof query.value !== "string"
+                    ? query.value.toString()
+                    : query.value
+            )
+        );
+        const answers = Object.keys(values).map(
+            (key) =>
+                ({
+                    templateQuestionId: key,
+                    value: values[key],
+                } as SubmittedAnswer)
+        );
         const res = await submitSurvey({
             // @ts-expect-error id may be defined if it is resubmitted
             id: submission ? submission.id : undefined,
@@ -69,23 +71,9 @@ export default async function Survey({
                 />
                 <P text={templateSummary.description || ""} />
             </div>
-            <div>
-                {(
-                    templateSummary.templateQuestions?.filter(
-                        (question) => question.templateSectionId === null
-                    ) || []
-                ).map((question) => (
-                    <QuestionRender
-                        key={question.id}
-                        question={question}
-                        errorIds={errorIds}
-                    />
-                ))}
-            </div>
-            <div>
-                <SubmitFormButton
-                    variant={isError === true ? "destructive" : "default"}
-                    disabled={isError}
+            <div className="my-16">
+                <SurveyResponseForm
+                    questions={templateSummary.templateQuestions || []}
                 />
             </div>
         </div>

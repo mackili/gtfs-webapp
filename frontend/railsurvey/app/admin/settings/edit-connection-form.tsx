@@ -214,7 +214,32 @@ export default function RelatimeConnectionForm({
                             </FormItem>
                         )}
                     />
-
+                    <FormField
+                        control={form.control}
+                        name="refreshPeriod"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Refresh period</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        {...{
+                                            ...field,
+                                            value:
+                                                field.value === null
+                                                    ? undefined
+                                                    : field.value,
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormDescription>
+                                    How often to refresh Realtime Dataset
+                                    (seconds)?
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <FormField
                         control={form.control}
                         name="id"

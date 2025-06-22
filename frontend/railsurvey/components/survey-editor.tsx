@@ -3,7 +3,6 @@ import {
     TemplateSection,
     TemplateQuestion,
     Author,
-    htmlInputTypes,
     TemplateSummary,
 } from "@/types/surveys";
 import { H2, H3, H4 } from "./ui/typography";
@@ -195,8 +194,7 @@ const creatorForm: TemplateSummary = {
             text: "Answer Format",
             displayOrder: 40,
             answerFormat: "select",
-            // @ts-expect-error this is a constant
-            selectValues: htmlInputTypes,
+            selectValues: ["email", "hidden", "number", "tel", "text", "url"],
             surveyTemplateId: 0,
             templateSectionId: "templateQuestions",
             isRequired: true,

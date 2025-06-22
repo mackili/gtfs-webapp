@@ -39,9 +39,10 @@ export default async function Home({
                     {new Date(submission.timestamp).toString()}{" "}
                 </p>
             </div>
-            <div className="flex w-full items-end gap-8 grow">
+            <div className="grid md:grid-cols-2 w-full flex-col items-baseline gap-8">
                 {submission.answers.map((answer) => (
                     <InfocardsMap
+                        className="w-full h-full"
                         key={answer.uuid}
                         title={answer.templateQuestion?.text}
                         data={{}}

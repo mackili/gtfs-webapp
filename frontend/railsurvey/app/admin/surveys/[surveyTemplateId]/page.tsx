@@ -42,7 +42,7 @@ export default async function Home({
     return (
         <div className="flex flex-col mx-10">
             <div className="flex flex-col justify-start content-center flex-wrap md:flex-nowrap md:flex-row w-full md:justify-between items-center gap-8 my-10">
-                <div className="flex w-full items-end gap-8">
+                <div className="flex flex-col grow gap-2">
                     <H1
                         text={templateData?.displayTitle || ""}
                         className="pb-0"
@@ -52,7 +52,7 @@ export default async function Home({
                         className="pb-0"
                     />
                 </div>
-                <div className="w-full flex justify-center md:justify-end">
+                <div className="flex justify-center md:justify-end">
                     <Link href={`/admin/surveys/edit?id=${templateData.id}`}>
                         <Button
                             variant="outline"
@@ -75,25 +75,15 @@ export default async function Home({
                             keysFilter={surveyDetailKeys}
                             className="md:col-span-2"
                         />
-                        <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4 md:grid-cols-2">
-                            <H3 text="Questions" className="md:col-span-2" />
-                            {templateData.templateQuestions
-                                ?.sort(
-                                    (a, b) => a.displayOrder - b.displayOrder
-                                )
-                                .map((question, index) => (
-                                    <InfocardsMap
-                                        key={index}
-                                        title={question.text}
-                                        data={question}
-                                        keysFilter={surveyTemplateQuestionKeys}
-                                    />
-                                ))}
-                        </div>
                         <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4">
                             <div className="flex content-center flex-nowrap flex-row w-full justify-between">
                                 <H3
-                                    text="Measured Service Aspects"
+                                    text={`Measured Service Aspects (${
+                                        templateData.serviceAspectFormulas
+                                            ? templateData.serviceAspectFormulas
+                                                  .length
+                                            : 0
+                                    })`}
                                     className="md:col-span-2"
                                 />
                                 <Link
@@ -151,9 +141,31 @@ export default async function Home({
                                 )
                             )}
                         </div>
+                        <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 grid border bg-background shadow-xs gap-4 md:grid-cols-2">
+                            <H3
+                                text={`Questions (${
+                                    templateData.templateQuestions
+                                        ? templateData.templateQuestions.length
+                                        : 0
+                                })`}
+                                className="md:col-span-2"
+                            />
+                            {templateData.templateQuestions
+                                ?.sort(
+                                    (a, b) => a.displayOrder - b.displayOrder
+                                )
+                                .map((question, index) => (
+                                    <InfocardsMap
+                                        key={index}
+                                        title={question.text}
+                                        data={question}
+                                        keysFilter={surveyTemplateQuestionKeys}
+                                    />
+                                ))}
+                        </div>
                     </div>
                 </div>
-                <div>
+                <div className="flex flex-col gap-4">
                     <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-col border bg-background shadow-xs gap-4">
                         <div className="flex">
                             <H3 text="Authors" />

@@ -6,7 +6,7 @@ export const columns: ColumnsDefinition[] = [
         link: true,
     },
     {
-        accessorKey: "templateTitle",
+        accessorKey: "title",
         header: "Title",
         link: true,
     },

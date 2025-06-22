@@ -46,12 +46,15 @@ export const routeDetailsSchema = z.object({
     routeLongName: z.string().nullish(),
     routeDesc: z.string().nullish(),
     routeType: z.union([z.enum(routeTypeEnum), z.int()]).nullish(),
+    averageDelay: z.number().optional(),
 });
 
 export type Route = z.infer<typeof routesSchema>;
 
 export type RouteDetailsView = Route & {
     agency: { agencyName: string };
+    trips: [{ tripId: string; tripUpdates: [{ averageDelay: number }] }];
+    averageDelay?: number;
 };
 
 export type StopTimesForTrip = StopTimes & {
@@ -92,6 +95,7 @@ export type TripDetailsView = Trips & {
     calendar: Calendar & {
         calendarDates: CalendarDates;
     };
+    tripUpdates: [{ averageDelay: number | null }];
 };
 
 export const calendarSchema = z.object({

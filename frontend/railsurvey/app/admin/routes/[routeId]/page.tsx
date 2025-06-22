@@ -1,4 +1,4 @@
-import { H1, H2 } from "@/components/ui/typography";
+import { H1, H2, H3 } from "@/components/ui/typography";
 import { RouteDetailsView } from "@/types/gtfs";
 import {
     queryRouteDetails,
@@ -19,6 +19,7 @@ import { AlertTriangle } from "lucide-react";
 import RouteDetails from "./route-details";
 import RouteColorDot from "./route-color";
 import RouteTypeIcon from "./route-type-icon";
+import Link from "next/link";
 
 export default async function Home({
     params,
@@ -57,9 +58,20 @@ export default async function Home({
                   })
               ).items
             : [];
+    const allDelays = routeData.trips
+        .flatMap((trip) =>
+            trip.tripUpdates.map((update) => update.averageDelay)
+        )
+        .filter((delay) => typeof delay === "number" && !isNaN(delay));
+
+    const averageDelay =
+        allDelays.length > 0
+            ? allDelays.reduce((sum, d) => sum + (d as number), 0) /
+              allDelays.length
+            : null;
     return (
         <div className="flex flex-col mx-10 mb-10">
-            <div className="flex w-full items-end gap-8 my-10">
+            <div className="flex flex-col w-full gap-4 my-10">
                 <div className="flex items-center gap-2">
                     <H1 text={`${routeData.routeShortName || ""}`} />
                     <RouteColorDot routeColor={routeData.routeColor} />
@@ -71,7 +83,12 @@ export default async function Home({
                 <div className="md:col-span-5 gap-4">
                     <div className="grid md:grid-cols-3 items-center justify-between gap-8">
                         <div className="md:col-span-3">
-                            <RouteDetails data={routeData} />
+                            <RouteDetails
+                                data={{
+                                    ...routeData,
+                                    averageDelay: averageDelay || undefined,
+                                }}
+                            />
                         </div>
                         <div className="col-span-full sm:grid-cols-2 grid gap-4">
                             <div className="flex flex-col gap-2">
@@ -144,7 +161,18 @@ export default async function Home({
                         </div>
                     </div>
                 </div>
-                <div className="md:col-span-2 gap-2 flex flex-col"></div>
+                <div className="md:col-span-2 gap-2 flex flex-col">
+                    <H3 text={`Trips (${routeData.trips.length})`} />
+                    {routeData.trips.map((trip, index) => (
+                        <Link key={index} href={`/admin/trips/${trip.tripId}`}>
+                            <InfocardsMap
+                                // title={`${trip.tripId || ""}`}
+                                data={{ tripId: trip.tripId }}
+                                keysFilter={["tripId"]}
+                            />
+                        </Link>
+                    ))}
+                </div>
             </div>
         </div>
     );

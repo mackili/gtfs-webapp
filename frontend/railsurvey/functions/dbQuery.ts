@@ -17,9 +17,10 @@ import {
 } from "@/types/surveys";
 import { encodeBinary, decodeBinary } from "./encoder";
 import {
-    realtimeSourceAgencySchema,
     RealtimeSourceResult,
     realtimeSourceResultSchema,
+    TripUpdateResult,
+    tripUpdateResultSchema,
 } from "@/types/gtfsrt";
 
 type QueryInput = {
@@ -43,7 +44,8 @@ type QueryResponseItemBase =
     | TripDetailsView
     | RouteDetailsView
     | StationDetails
-    | RealtimeSourceResult;
+    | RealtimeSourceResult
+    | TripUpdateResult;
 
 export type QueryResponseItem = QueryResponseItemBase & {
     id: string | number;
@@ -166,7 +168,7 @@ export async function queryStationsTable(input: QueryTableInput) {
 export async function queryRouteDetails(routeId: string) {
     const queryInput: QueryInput = {
         table: "routes",
-        fields: "routeId,routeType,agencyId,routeShortName,routeLongName,routeUrl,routeDesc,routeColor,agency(agencyName)",
+        fields: "routeId,routeType,agencyId,routeShortName,routeLongName,routeUrl,routeDesc,routeColor,agency(agencyName),trips(tripId,tripUpdates(averageDelay:delay.avg(),tripId))",
         filter: `route_id=eq.${routeId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
@@ -218,6 +220,7 @@ export async function queryRoutesTable(input: QueryTableInput) {
                 : "");
         return item;
     });
+    // @ts-expect-error additional properties added
     data.items = itemsUpdated;
     return data;
 }
@@ -262,7 +265,7 @@ export async function queryServiceAspectTable(input: QueryTableInput) {
 export async function queryTripDetails(tripId: string) {
     const queryInput: QueryInput = {
         table: "trips",
-        fields: "tripId,tripHeadsign,tripShortName,directionId,blockId,shapeId,wheelchairAccessible,bikesAllowed,calendar(*,calendarDates(*)),routeId",
+        fields: "tripId,tripHeadsign,tripShortName,directionId,blockId,shapeId,wheelchairAccessible,bikesAllowed,calendar(*,calendarDates(*)),routeId,tripUpdates(averageDelay:delay.avg()::int,tripId)",
         query: `tripId=eq.${tripId}`,
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
@@ -498,4 +501,31 @@ export async function calculateAspectValues({
         },
     });
     return result.json();
+}
+
+export async function queryTripUpdates(
+    tripId: number | string
+): Promise<TripUpdateResult | undefined> {
+    const result = (await queryDB({
+        table: "tripUpdates",
+        query: `tripId=eq.${tripId}`,
+        fields: "oid,tripId,scheduleRelationship,vehicleId,vehicleLabel,vehicleLicensePlate,timestamp,delay,stopTimeUpdates(oid,stopId,stopSequence,arrivalTime,departureTime,arrivalUncertainty,departureUncertainty,arrivalDelay,departureDelay,scheduleRelationship)",
+        order: "timestamp.desc",
+        limit: 1,
+    })) as QueryResponse;
+    const unparsed = result.items[0] as TripUpdateResult | undefined;
+    if (unparsed?.stopTimeUpdates) {
+        unparsed.stopTimeUpdates = unparsed?.stopTimeUpdates.map((update) => ({
+            ...update,
+            departureTime: update.departureTime
+                ? update.departureTime + "Z"
+                : null,
+            arrivalTime: update.arrivalTime ? update.arrivalTime + "Z" : null,
+        }));
+    }
+    try {
+        return tripUpdateResultSchema.parse(unparsed);
+    } catch {
+        return undefined;
+    }
 }

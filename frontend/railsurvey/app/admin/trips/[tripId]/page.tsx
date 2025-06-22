@@ -13,6 +13,7 @@ import {
     calculateAspectValues,
     queryTemplatesTable,
     querySurveysTable,
+    queryTripUpdates,
 } from "@/functions/dbQuery";
 import { twMerge } from "tailwind-merge";
 import {
@@ -28,6 +29,8 @@ import RouteDetails from "../../routes/[routeId]/route-details";
 import RouteTypeIcon from "../../routes/[routeId]/route-type-icon";
 import RouteColorDot from "../../routes/[routeId]/route-color";
 import AspectValueDisplay from "@/components/aspect-value-display";
+import Link from "next/link";
+import RelatimeStatus from "@/components/ui/realtime-status";
 
 export default async function Home({
     params,
@@ -73,6 +76,7 @@ export default async function Home({
                   })
               ).items
             : [];
+    const tripUpdates = await queryTripUpdates(tripId);
     return (
         <div className="flex flex-col mx-10 mb-10">
             <div className="flex w-full items-center gap-8 my-10">
@@ -80,6 +84,7 @@ export default async function Home({
                 <RouteColorDot routeColor={routeData.routeColor} />
                 <H2 text={tripData.tripHeadsign || ""} className="pb-0" />
                 <RouteTypeIcon routeType={Number(routeData.routeType)} />
+                <RelatimeStatus tripUpdates={tripUpdates} />
             </div>
             <div className="grid md:grid-cols-7 gap-8">
                 <div className="md:col-span-5 gap-4">
@@ -126,10 +131,19 @@ export default async function Home({
                             </div>
                         </div>
                         <div className="col-span-full sm:grid-cols-2 grid gap-4">
-                            <RouteDetails
-                                data={routeData}
+                            <Link
+                                href={`/admin/routes/${routeData.routeId}`}
                                 className="col-span-full"
-                            />
+                            >
+                                <RouteDetails
+                                    data={{
+                                        ...routeData,
+                                        averageDelay:
+                                            tripData.tripUpdates[0]
+                                                ?.averageDelay || undefined,
+                                    }}
+                                />
+                            </Link>
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="templateSelect">
                                     Survey Template
@@ -186,41 +200,123 @@ export default async function Home({
                 <div className="md:col-span-2 gap-2 flex flex-col">
                     {stopTimes
                         .sort((a, b) => a.stopSequence - b.stopSequence)
-                        .map((halt, index) => (
-                            <div key={index} className="">
-                                <div className="w-1"></div>
-                                <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-row flex-nowrap items-center gap-2 border bg-background shadow-xs">
-                                    <div
-                                        className={twMerge(
-                                            "border-solid h-8 w-8 border-primary border-2 rounded-full flex-none flex items-center justify-center",
-                                            (index === 0 ||
-                                                index ===
-                                                    stopTimes.length - 1) &&
-                                                "bg-primary"
-                                        )}
-                                    >
-                                        <P
+                        .map((halt, index) => {
+                            const stopTimeUpdate =
+                                tripUpdates &&
+                                tripUpdates.stopTimeUpdates.find(
+                                    (stop) =>
+                                        stop.stopId === halt.stopId ||
+                                        stop.stopSequence === halt.stopSequence
+                                );
+                            const updArrivalTime = stopTimeUpdate?.arrivalTime
+                                ? new Date(stopTimeUpdate?.arrivalTime)
+                                : undefined;
+                            const updDepartureTime =
+                                stopTimeUpdate?.departureTime
+                                    ? new Date(stopTimeUpdate?.departureTime)
+                                    : undefined;
+                            return (
+                                <div key={index} className="">
+                                    <div className="w-1"></div>
+                                    <div className="transition-all hover:bg-accent/10 hover:text-accent-foreground rounded-md p-4 has-[>svg]:px-4 flex flex-row flex-nowrap items-center gap-2 border bg-background shadow-xs">
+                                        <div
                                             className={twMerge(
-                                                "text-sm font-light",
+                                                "border-solid h-8 w-8 border-primary border-2 rounded-full flex-none flex items-center justify-center",
                                                 (index === 0 ||
                                                     index ===
                                                         stopTimes.length - 1) &&
-                                                    "text-secondary"
+                                                    "bg-primary"
                                             )}
-                                            text={(index + 1).toString()}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col text-xs gap-1">
-                                        <p>{halt.arrivalTime}</p>
-                                        <p>{halt.departureTime}</p>
-                                    </div>
-                                    <div className="ml-1">
-                                        {halt.stops?.parentStation?.stopName ||
-                                            halt.stops.stopName}
+                                        >
+                                            <P
+                                                className={twMerge(
+                                                    "text-sm font-light",
+                                                    (index === 0 ||
+                                                        index ===
+                                                            stopTimes.length -
+                                                                1) &&
+                                                        "text-secondary"
+                                                )}
+                                                text={(index + 1).toString()}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col text-xs gap-1">
+                                            <p>
+                                                <span
+                                                    className={
+                                                        updArrivalTime &&
+                                                        "line-through"
+                                                    }
+                                                >
+                                                    {halt.arrivalTime}
+                                                </span>
+                                                <span>
+                                                    {updArrivalTime &&
+                                                        `${updArrivalTime
+                                                            .getHours()
+                                                            .toString()
+                                                            .padStart(
+                                                                2,
+                                                                "0"
+                                                            )}:${updArrivalTime
+                                                            .getMinutes()
+                                                            .toString()
+                                                            .padStart(
+                                                                2,
+                                                                "0"
+                                                            )}:${updArrivalTime
+                                                            .getSeconds()
+                                                            .toString()
+                                                            .padStart(2, "0")}`}
+                                                </span>
+                                            </p>
+                                            <p>
+                                                <span
+                                                    className={
+                                                        updDepartureTime &&
+                                                        "line-through"
+                                                    }
+                                                >
+                                                    {halt.departureTime}
+                                                </span>
+                                                <span>
+                                                    {updDepartureTime &&
+                                                        `${updDepartureTime
+                                                            .getHours()
+                                                            .toString()
+                                                            .padStart(
+                                                                2,
+                                                                "0"
+                                                            )}:${updDepartureTime
+                                                            .getMinutes()
+                                                            .toString()
+                                                            .padStart(
+                                                                2,
+                                                                "0"
+                                                            )}:${updDepartureTime
+                                                            .getSeconds()
+                                                            .toString()
+                                                            .padStart(2, "0")}`}
+                                                </span>
+                                            </p>
+                                        </div>
+                                        <div className="ml-1 hover:underline">
+                                            <Link
+                                                href={`/admin/stations/${
+                                                    halt.stops?.parentStation
+                                                        ?.stopId ||
+                                                    halt.stops.stopId
+                                                }`}
+                                            >
+                                                {halt.stops?.parentStation
+                                                    ?.stopName ||
+                                                    halt.stops.stopName}
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                 </div>
             </div>
         </div>
