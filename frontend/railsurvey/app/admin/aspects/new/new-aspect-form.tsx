@@ -1,7 +1,7 @@
 "use client";
-import { zodResolver } from "@hookform/resolvers/zod";
+// import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+// import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -16,12 +16,12 @@ import { Input } from "@/components/ui/input";
 import { ServiceAspect } from "@/types/surveys";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-const formSchema = z.object({
-    title: z.string().min(2, {
-        message: "Aspect Name must be at least 2 characters long.",
-    }),
-    id: z.number().int().optional(),
-});
+// const formSchema = z.object({
+//     title: z.string().min(2, {
+//         message: "Aspect Name must be at least 2 characters long.",
+//     }),
+//     id: z.number().int().optional(),
+// });
 
 export default function ServiceAspectForm({
     defaultValue,
@@ -32,11 +32,7 @@ export default function ServiceAspectForm({
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const form = useForm<ServiceAspect>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            title: defaultValue ? defaultValue.title : "",
-            id: defaultValue ? defaultValue.id : undefined,
-        },
+        defaultValues: defaultValue,
     });
 
     function onSubmit(values: ServiceAspect) {

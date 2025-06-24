@@ -17,7 +17,9 @@ export default async function Page({
     const headerList = await headers();
     const params = await searchParams;
     let templateId = params.id;
-    const data = await querySurveyTemplate(Number(templateId));
+    const data = templateId
+        ? await querySurveyTemplate(Number(templateId))
+        : undefined;
     const submitted = params.isSubmitted;
     if (submitted === "true") {
         // eslint-disable-next-line

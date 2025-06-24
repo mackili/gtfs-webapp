@@ -211,7 +211,7 @@ async def upsert_table(table: str, data: UpsertInput):
 async def upsert_template(
     data: TemplateSummary,
     perform_rollback: str = "false",
-):
+) -> TemplateSummary:
     headers = {
         "Prefer": "return=representation",
     }

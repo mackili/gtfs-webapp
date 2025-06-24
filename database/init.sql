@@ -179,11 +179,13 @@ CREATE TABLE "trip_updates" (
   "vehicle_label" varchar(255),
   "vehicle_license_plate" varchar(10),
   "delay" int,
-  "timestamp" timestamp
+  "timestamp" timestamp without time zone
 );
 
 CREATE TABLE "alerts" (
   "oid" varchar(255) PRIMARY KEY,
+  "start" int,
+  "end" int,
   "active_period" json,
   "cause" varchar(255),
   "effect" varchar(255),
@@ -319,7 +321,7 @@ ALTER TABLE "trips"
 
 ALTER TABLE "vehicle_positions"
   ADD FOREIGN KEY ("trip_trip_id") REFERENCES "trips"("trip_id"),
-  ADD FOREIGN KEY ("route_id") REFERENCES "routes"("route_id");
+  ADD FOREIGN KEY ("trip_route_id") REFERENCES "routes"("route_id");
 
 ALTER TABLE "stop_times"
   ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id"),

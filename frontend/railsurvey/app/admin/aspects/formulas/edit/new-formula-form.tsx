@@ -65,6 +65,7 @@ export default function ServiceAspectFormulaForm({
     });
 
     function onSubmit(values: ServiceAspectFormula) {
+        console.log(values);
         const params = new URLSearchParams(
             Object.entries(values)
                 .filter(([, value]) => value !== undefined)

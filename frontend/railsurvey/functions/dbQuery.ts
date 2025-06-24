@@ -179,15 +179,15 @@ export async function querySurveyTemplate(surveyTemplateId: number) {
     const queryInput: QueryInput = {
         table: "surveyTemplate",
         fields: "id,title,displayTitle,description,type,surveyTemplateAuthors:surveyTemplateAuthor(author(id,firstName,lastName,institutionName)),templateSections:templateSection(id,displayOrder,title,description,displayNextPage),templateQuestions:templateQuestion(id,displayOrder,text,templateSection_id,answerFormat,isRequired,minValue,maxValue),serviceAspectFormulas:serviceAspectFormula(id,weight,formula,serviceAspect(id,title))",
-        filter: `id=eq.${surveyTemplateId}`,
+        filter: surveyTemplateId ? `id=eq.${surveyTemplateId}` : "",
     };
     const data: QueryResponse = (await queryDB(queryInput)) as QueryResponse;
     // Decoding formula from binary to text
-    (data.items as TemplateSummary[]).map((template) =>
+    (data.items as TemplateSummary[]).map((template) => {
         template.serviceAspectFormulas?.map(
             (formula) => (formula.formula = decodeBinary(formula.formula))
-        )
-    );
+        );
+    });
     return data.items[0] as TemplateSummary;
 }
 

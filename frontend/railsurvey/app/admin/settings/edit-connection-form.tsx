@@ -283,7 +283,8 @@ export default function RelatimeConnectionForm({
                                                 onCheckedChange={(checked) => {
                                                     return checked
                                                         ? field.onChange([
-                                                              ...field.value,
+                                                              ...(field.value ||
+                                                                  []),
                                                               {
                                                                   agencyId:
                                                                       agency.agencyId,
