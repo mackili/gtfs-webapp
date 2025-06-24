@@ -254,9 +254,9 @@ CREATE TABLE "template_question" (
   "template_section_id" bigint,
   "answer_format" varchar(80),
   "is_required" boolean DEFAULT FALSE,
-  'max_value' smallint,
-  'min_value' smallint,
-  'select_values' json
+  "max_value" smallint,
+  "min_value" smallint,
+  "select_values" json
 );
 
 CREATE TABLE "service_aspect" (
@@ -318,7 +318,7 @@ ALTER TABLE "trips"
   ADD FOREIGN KEY ("service_id") REFERENCES "calendar"("service_id");
 
 ALTER TABLE "vehicle_positions"
-  ADD FOREIGN KEY ("trip_id") REFERENCES "trips"("trip_id"),
+  ADD FOREIGN KEY ("trip_trip_id") REFERENCES "trips"("trip_id"),
   ADD FOREIGN KEY ("route_id") REFERENCES "routes"("route_id");
 
 ALTER TABLE "stop_times"
