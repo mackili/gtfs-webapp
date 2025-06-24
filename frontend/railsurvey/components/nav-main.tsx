@@ -26,7 +26,7 @@ export function NavMain({
                 <SidebarMenu>
                     <SidebarMenuItem className="flex items-center gap-2">
                         <Link
-                            href={{ pathname: "/admin/surveys/new" }}
+                            href={{ pathname: "/admin/research/edit" }}
                             className="w-full"
                         >
                             <SidebarMenuButton

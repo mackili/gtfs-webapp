@@ -62,7 +62,6 @@ async def read_query(
         headers["Range"] = range
 
     res = requests.get(endpoint, headers=headers)
-    print(endpoint)
     response = {}
     response_headers = res.headers
     if "Content-Range" in response_headers.keys():
