@@ -98,3 +98,11 @@ async def background_function(
 def stop_background_function():
     global background_task_stop_event
     background_task_stop_event.set()
+
+
+main(
+    AnyUrl(
+        "https://proxy.transport.data.gouv.fr/resource/tac-annemasse-gtfs-rt-trip-update"
+    ),
+    verbose=True,
+)

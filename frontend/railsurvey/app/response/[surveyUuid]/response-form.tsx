@@ -28,6 +28,9 @@ export default function SurveyResponseForm({
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const tripId = searchParams.get("tripId");
+    const routeId = searchParams.get("routeId");
+    const ticketHash = searchParams.get("ticketHash");
     const form = useForm({
         // resolver: standardSchemaResolver(),
     });
@@ -47,6 +50,9 @@ export default function SurveyResponseForm({
             submitted: "true",
         });
         params.append("isError", "false");
+        if (tripId) params.append("tripId", tripId);
+        if (routeId) params.append("routeId", routeId);
+        if (ticketHash) params.append("ticketHash", ticketHash);
         router.replace(`${pathname}?${params}`);
     }
 

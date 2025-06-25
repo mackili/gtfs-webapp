@@ -77,6 +77,7 @@ export default async function Home({
               ).items
             : [];
     const tripUpdates = await queryTripUpdates(tripId);
+    console.log(tripUpdates);
     return (
         <div className="flex flex-col mx-10 mb-10">
             <div className="flex w-full items-center gap-8 my-10">
