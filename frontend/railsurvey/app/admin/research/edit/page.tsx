@@ -57,7 +57,7 @@ export default async function Page({
                     text={
                         queryParams.id
                             ? `Edit ${"title"}`
-                            : "Create a new Service Aspect"
+                            : "Create a new Survey"
                     }
                 />
                 <div className="flex gap-4 mt-8 mb-2 justify-left">

@@ -91,7 +91,7 @@ export default function ServiceAspectFormulaForm({
                                 defaultValue?.surveyTemplateId ? "hidden" : ""
                             }`}
                         >
-                            <FormLabel>Service Aspect</FormLabel>
+                            <FormLabel>Survey Template</FormLabel>
                             <Select
                                 onValueChange={field.onChange}
                                 defaultValue={

@@ -200,7 +200,10 @@ async def upsert_table(table: str, data: UpsertInput):
         res = requests.post(
             endpoint, headers=headers, json=humps.decamelize(data.model_dump())
         )
+        print(res.json())
         resJson = res.json()
+        if res.status_code == 400:
+            raise HTTPException(status_code=res.status_code, detail=res.json())
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
     return resJson

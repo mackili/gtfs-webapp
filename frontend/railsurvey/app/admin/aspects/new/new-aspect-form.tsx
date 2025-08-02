@@ -1,7 +1,5 @@
 "use client";
-// import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-// import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -39,6 +37,8 @@ export default function ServiceAspectForm({
         const params = new URLSearchParams(
             Object.entries(values)
                 .filter(([, value]) => value !== undefined)
+                .filter(([, value]) => value !== null)
+                .filter(([, value]) => !Number.isNaN(value))
                 .map(([key, value]) => [key, String(value)])
         );
         params.append("isError", "false");

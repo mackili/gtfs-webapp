@@ -83,8 +83,8 @@ export default async function Page({
                 <H2
                     text={
                         queryParams.id
-                            ? `Edit ${"title"}`
-                            : "Create a new Service Aspect"
+                            ? `Edit formula for ${serviceAspectFormula?.serviceAspect.title}`
+                            : "Create a new Service Aspect Formula"
                     }
                 />
                 <div className="flex gap-4 mt-8 mb-2 justify-left">

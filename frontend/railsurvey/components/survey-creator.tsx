@@ -111,7 +111,7 @@ const creatorForm: TemplateSummary = {
             surveyTemplateId: 0,
             templateSectionId: "templateInfo",
             isRequired: true,
-            description: "aaa",
+            description: "Type of performed survey",
         },
         {
             id: "title",

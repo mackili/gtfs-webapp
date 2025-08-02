@@ -91,7 +91,7 @@ export default async function Home({
                 <div className="md:col-span-5 gap-4">
                     <div className="grid md:grid-cols-3 items-center justify-between gap-8">
                         <div className="md:col-span-2">
-                            <div className="grid lg:grid-cols-7 md:grid-cols-4 sm:grid-cols-7 grid-cols-4 gap-2 overflow-scroll">
+                            <div className="grid lg:grid-cols-7 md:grid-cols-4 sm:grid-cols-7 grid-cols-4 gap-2 overflow-auto ">
                                 {tripRunDays.success &&
                                     Object.keys(tripRunDays.data).map(
                                         (key, index) => (
