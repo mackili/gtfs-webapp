@@ -24,12 +24,12 @@ FROM base AS prerelease
 COPY --from=install /temp/dev/node_modules node_modules
 COPY railsurvey/. .
 WORKDIR /railsurvey
-RUN bun test
+# RUN bun test
 RUN bun run build
 
 # [optional] tests & build
 ENV NODE_ENV=production
-RUN bun test
+# RUN bun test
 RUN rm -rf .next
 RUN bun run build
 

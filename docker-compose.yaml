@@ -6,9 +6,10 @@ services:
         restart: always
         ports:
             - "5432:5432"
-        env_file:
-            - path: "database.env"
-              required: true
+        environment:
+            POSTGRES_USER: servqual_admin
+            POSTGRES_PASSWORD: servqual_gtfs
+            POSTGRES_DB: servqual
         volumes:
             - ./database:/docker-entrypoint-initdb.d
             - servqual_db:/var/lib/postgresql/data
@@ -18,9 +19,9 @@ services:
         restart: always
         ports:
             - "5050:80"
-        env_file:
-            - path: "pgadmin.env"
-              required: true
+        environment:
+            PGADMIN_DEFAULT_EMAIL: servqual_admin@wu.s.ac.at
+            PGADMIN_DEFAULT_PASSWORD: pg-admin
         volumes:
             - servqual_pgadmin4:/var/lib/pgadmin
         depends_on:
@@ -32,9 +33,11 @@ services:
             - "3000:3000"
         depends_on:
             - db
-        env_file:
-            - path: "postgrest.env"
-              required: true
+        environment:
+            PGRST_DB_URI: postgres://servqual_admin:servqual_gtfs@db:5432/servqual
+            PGRST_OPENAPI_SERVER_PROXY_URI: http://host.docker.internal:3000
+            PGRST_DB_ANON_ROLE: anonymous
+            PGRST_DB_AGGREGATES_ENABLED: true
     swagger:
         image: swaggerapi/swagger-ui:v5.25.2
         container_name: api_documentation_db
@@ -59,7 +62,7 @@ services:
             BATCH_SIZE_RT: 1
     frontend:
         image: railsurvey-frontend
-        container_name: railsurvey_frontend_python
+        container_name: railsurvey_frontend
         build: ./frontend
         ports:
             - "4000:4000"
