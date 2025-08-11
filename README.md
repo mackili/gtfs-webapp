@@ -93,3 +93,7 @@ Upon clicking on ports hyperlink, you'll be redirected to the chosen service:
 #### Postgrest specification:
 
 ![Postgrest specification](./resources/Postgrest.png)
+
+### 5. Start using the application!
+
+Upon accessing the Railsurvey application you might want to try it! Feel free to use the attached, tested GTFS file of [Koleje Dolnośląskie](https://kolejedolnoslaskie.pl/rozklady-gtfs/) you find [here](./resources/KD_GTFS.zip).
