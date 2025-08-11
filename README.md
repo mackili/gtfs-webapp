@@ -82,6 +82,9 @@ You should now see a Docker Compose stack running with links to the services in 
 
 Upon clicking on ports hyperlink, you'll be redirected to the chosen service:
 
+<details>
+<summary>Examples and screenshots</summary>
+
 #### Railsurvey frontend redirect:
 
 ![Railsurvey frontend redirect](./resources/RailsurveyFrontend.png)
@@ -93,6 +96,8 @@ Upon clicking on ports hyperlink, you'll be redirected to the chosen service:
 #### Postgrest specification:
 
 ![Postgrest specification](./resources/Postgrest.png)
+
+</details>
 
 ### 5. Start using the application!
 
